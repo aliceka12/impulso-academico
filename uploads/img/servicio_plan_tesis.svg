@@ -1,0 +1,20 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 340" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#031530"/>
+      <stop offset="55%" stop-color="#07275A"/>
+      <stop offset="100%" stop-color="#0A3982"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="340" fill="url(#bg)"/>
+  <circle cx="530" cy="55" r="110" fill="#3898FF" opacity="0.12"/>
+  <circle cx="65" cy="295" r="130" fill="#0074F0" opacity="0.16"/>
+  <g>
+    <circle cx="300" cy="185" r="78" fill="#0074F0" opacity="0.22"/>
+             <circle cx="300" cy="185" r="56" fill="#041F4A" stroke="#3898FF" stroke-width="3"/>
+             <path d="M300 145 C278 145 262 161 262 181 C262 195 271 206 282 212 L282 224 C282 228 285 231 289 231 L311 231 C315 231 318 228 318 224 L318 212 C329 206 338 195 338 181 C338 161 322 145 300 145 Z" fill="#FBBF24"/>
+             <rect x="286" y="236" width="28" height="6" rx="3" fill="#93C5FD"/>
+  </g>
+  <text x="300" y="292" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="800" fill="#E2EEFF" letter-spacing="1.5" text-anchor="middle">INVESTIGACIÓN Y PROYECTO DE TESIS</text>
+  <rect x="235" y="306" width="130" height="4" rx="2" fill="#FBBF24"/>
+</svg>

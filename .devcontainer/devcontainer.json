@@ -1,0 +1,17 @@
+{
+    "name": "Impulso Académico - Cloud PHP & MySQL",
+    "image": "mcr.microsoft.com/devcontainers/php:1-8.3-bullseye",
+    "features": {
+        "ghcr.io/devcontainers/features/sshd:1": {}
+    },
+    "postCreateCommand": "sudo apt-get update && sudo apt-get install -y mariadb-server default-mysql-client && sudo docker-php-ext-install pdo pdo_mysql mysqli",
+    "postStartCommand": "bash .devcontainer/start-cloud.sh",
+    "forwardPorts": [8000],
+    "portsAttributes": {
+        "8000": {
+            "label": "Impulso Académico Web & Panel",
+            "onAutoForward": "openBrowser",
+            "visibility": "public"
+        }
+    }
+}

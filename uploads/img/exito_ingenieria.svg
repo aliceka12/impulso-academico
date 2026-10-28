@@ -1,0 +1,22 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#042152"/>
+      <stop offset="60%" stop-color="#06327D"/>
+      <stop offset="100%" stop-color="#0074F0"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="400" rx="22" fill="url(#g1)"/>
+  <circle cx="520" cy="70" r="110" fill="#4DA3FF" opacity="0.14"/>
+  <circle cx="70" cy="340" r="120" fill="#0066D6" opacity="0.18"/>
+  <rect x="36" y="32" width="170" height="34" rx="17" fill="#4DA3FF" opacity="0.22"/>
+  <text x="121" y="54" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#4DA3FF" text-anchor="middle">CASO DE ÉXITO • INGENIERÍA</text>
+  <g transform="translate(200, 45)">
+    <circle cx="100" cy="95" r="72" fill="#FFFFFF" opacity="0.1"/>
+    <rect x="50" y="105" width="24" height="45" rx="4" fill="#4DA3FF"/><rect x="88" y="75" width="24" height="75" rx="4" fill="#0066D6"/><rect x="126" y="45" width="24" height="105" rx="4" fill="#FFFFFF"/><polyline points="48,95 95,62 145,35" fill="none" stroke="#4DA3FF" stroke-width="6" stroke-linecap="round"/>
+  </g>
+  <rect x="40" y="255" width="520" height="112" rx="16" fill="#FFFFFF" opacity="0.96"/>
+  <text x="300" y="298" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="800" fill="#042152" text-anchor="middle">Tesis Aprobada con Mención Sobresaliente</text>
+  <text x="300" y="332" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#0074F0" text-anchor="middle">Facultad de Ingeniería Industrial y de Sistemas</text>
+</svg>
+

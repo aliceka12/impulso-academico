@@ -1,0 +1,22 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#042152"/>
+      <stop offset="60%" stop-color="#06327D"/>
+      <stop offset="100%" stop-color="#0066D6"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="400" rx="22" fill="url(#g1)"/>
+  <circle cx="520" cy="70" r="110" fill="#4DA3FF" opacity="0.14"/>
+  <circle cx="70" cy="340" r="120" fill="#0066D6" opacity="0.18"/>
+  <rect x="36" y="32" width="170" height="34" rx="17" fill="#4DA3FF" opacity="0.22"/>
+  <text x="121" y="54" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#4DA3FF" text-anchor="middle">CASO DE ÉXITO • POSGRADO</text>
+  <g transform="translate(200, 45)">
+    <circle cx="100" cy="95" r="72" fill="#FFFFFF" opacity="0.1"/>
+    <circle cx="100" cy="95" r="48" fill="none" stroke="#4DA3FF" stroke-width="10"/><path d="M 80 95 L 95 110 L 124 78" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <rect x="40" y="255" width="520" height="112" rx="16" fill="#FFFFFF" opacity="0.96"/>
+  <text x="300" y="298" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="800" fill="#042152" text-anchor="middle">Maestría en Gestión de Servicios de Salud</text>
+  <text x="300" y="332" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#0074F0" text-anchor="middle">Similitud Turnitin 6% • Sustentación Unánime</text>
+</svg>
+

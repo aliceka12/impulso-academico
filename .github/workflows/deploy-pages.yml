@@ -1,0 +1,52 @@
+name: Desplegar Impulso Académico en GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Iniciar MySQL y preparar PHP
+        run: |
+          sudo systemctl start mysql.service
+          sudo mysql -uroot -proot -e "ALTER USER 'root'@'localhost' IDENTIFIED BY ''; ALTER USER 'root'@'127.0.0.1' IDENTIFIED BY ''; GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' WITH GRANT OPTION; FLUSH PRIVILEGES;" || true
+
+      - name: Generar versión web desde PHP + MySQL
+        run: |
+          mkdir -p _site
+          cp -r assets _site/
+          if [ -d uploads ]; then cp -r uploads _site/; fi
+          for page in index nosotros servicios metodologia tarifas contacto; do
+            php "${page}.php" > "_site/${page}.html"
+            sed -i 's/index\.php/index.html/g; s/nosotros\.php/nosotros.html/g; s/servicios\.php/servicios.html/g; s/metodologia\.php/metodologia.html/g; s/tarifas\.php/tarifas.html/g; s/contacto\.php/contacto.html/g' "_site/${page}.html"
+          done
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Subir artefacto de GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './_site'
+
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

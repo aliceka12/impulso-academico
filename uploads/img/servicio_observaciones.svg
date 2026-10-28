@@ -1,0 +1,20 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 340" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#031530"/>
+      <stop offset="55%" stop-color="#07275A"/>
+      <stop offset="100%" stop-color="#09357A"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="340" fill="url(#bg)"/>
+  <circle cx="530" cy="55" r="110" fill="#3898FF" opacity="0.12"/>
+  <circle cx="65" cy="295" r="130" fill="#0074F0" opacity="0.16"/>
+  <g>
+    <rect x="225" y="135" width="60" height="44" rx="8" fill="#0074F0" stroke="#7CC2FF" stroke-width="2"/>
+             <rect x="315" y="135" width="60" height="44" rx="8" fill="#041F4A" stroke="#FBBF24" stroke-width="3"/>
+             <rect x="270" y="205" width="60" height="44" rx="8" fill="#10B981"/>
+             <path d="M285 157 L315 157 M345 179 L300 205 M255 179 L300 205" stroke="#93C5FD" stroke-width="3" fill="none"/>
+  </g>
+  <text x="300" y="292" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="800" fill="#E2EEFF" letter-spacing="1.5" text-anchor="middle">DISEÑO Y METODOLOGÍA CIENTÍFICA</text>
+  <rect x="235" y="306" width="130" height="4" rx="2" fill="#FBBF24"/>
+</svg>
