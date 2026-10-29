@@ -29,14 +29,30 @@ jobs:
           sudo systemctl start mysql.service
           sudo mysql -uroot -proot -e "ALTER USER 'root'@'localhost' IDENTIFIED BY ''; ALTER USER 'root'@'127.0.0.1' IDENTIFIED BY ''; GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' WITH GRANT OPTION; FLUSH PRIVILEGES;" || true
 
-      - name: Generar versión web desde PHP + MySQL
+      - name: Generar versión web y Panel de Control desde PHP + MySQL
         run: |
-          mkdir -p _site
+          mkdir -p _site/admin
           cp -r assets _site/
           if [ -d uploads ]; then cp -r uploads _site/; fi
+
+          # 1. Páginas públicas
           for page in index nosotros servicios metodologia tarifas contacto; do
             php "${page}.php" > "_site/${page}.html"
-            sed -i 's/index\.php/index.html/g; s/nosotros\.php/nosotros.html/g; s/servicios\.php/servicios.html/g; s/metodologia\.php/metodologia.html/g; s/tarifas\.php/tarifas.html/g; s/contacto\.php/contacto.html/g' "_site/${page}.html"
+            sed -i 's/index\.php/index.html/g; s/nosotros\.php/nosotros.html/g; s/servicios\.php/servicios.html/g; s/metodologia\.php/metodologia.html/g; s/tarifas\.php/tarifas.html/g; s/contacto\.php/contacto.html/g; s/admin\/login\.php/admin\/login.html/g' "_site/${page}.html"
+          done
+
+          # 2. Panel de Control Administrativo y Reportes Imprimibles / Excel
+          (cd admin && php -r '$_SERVER["REQUEST_METHOD"]="GET"; include "login.php";') > "_site/admin/login.html"
+          (cd admin && php -r 'session_start(); $_SESSION["admin_logged_in"]=true; $_SESSION["admin_nombre"]="Administrador General"; include "index.php";') > "_site/admin/index.html"
+          (cd admin && php -r 'session_start(); $_SESSION["admin_logged_in"]=true; $_GET["tipo"]="financiero"; include "imprimir.php";') > "_site/admin/imprimir_financiero.html"
+          (cd admin && php -r 'session_start(); $_SESSION["admin_logged_in"]=true; $_GET["tipo"]="movimientos"; include "imprimir.php";') > "_site/admin/imprimir_movimientos.html"
+          (cd admin && php -r 'session_start(); $_SESSION["admin_logged_in"]=true; $_GET["tipo"]="clientes"; include "imprimir.php";') > "_site/admin/imprimir_clientes.html"
+          (cd admin && php -r 'session_start(); $_SESSION["admin_logged_in"]=true; $_GET["tipo"]="financiero"; include "exportar.php";') > "_site/admin/Reporte_Estado_Financiero.xls"
+          (cd admin && php -r 'session_start(); $_SESSION["admin_logged_in"]=true; $_GET["tipo"]="movimientos"; include "exportar.php";') > "_site/admin/Reporte_Movimientos.xls"
+          (cd admin && php -r 'session_start(); $_SESSION["admin_logged_in"]=true; $_GET["tipo"]="clientes"; include "exportar.php";') > "_site/admin/Reporte_Clientes.xls"
+
+          for apage in login index imprimir_financiero imprimir_movimientos imprimir_clientes; do
+            sed -i 's/\.\.\/index\.php/..\/index.html/g; s/login\.php?logout=1/login.html/g; s/login\.php/login.html/g; s/index\.php/index.html/g; s/imprimir\.php?tipo=financiero/imprimir_financiero.html/g; s/imprimir\.php?tipo=movimientos/imprimir_movimientos.html/g; s/imprimir\.php?tipo=clientes/imprimir_clientes.html/g; s/exportar\.php?tipo=financiero/Reporte_Estado_Financiero.xls/g; s/exportar\.php?tipo=movimientos/Reporte_Movimientos.xls/g; s/exportar\.php?tipo=clientes/Reporte_Clientes.xls/g' "_site/admin/${apage}.html"
           done
 
       - name: Configurar GitHub Pages

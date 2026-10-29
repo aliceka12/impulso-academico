@@ -1732,6 +1732,25 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_error']);
                     }
                 });
             }
+
+            if (window.location.pathname.endsWith('.html') || window.location.hostname.includes('github.io')) {
+                document.querySelectorAll('form[action="acciones.php"]').forEach((form) => {
+                    form.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        document.querySelectorAll('.modal-overlay.open').forEach((m) => m.classList.remove('open'));
+                        let alertBox = document.getElementById('ghPagesToast');
+                        if (!alertBox) {
+                            alertBox = document.createElement('div');
+                            alertBox.id = 'ghPagesToast';
+                            alertBox.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#064E3B;border:2px solid #10B981;color:#ECFDF5;padding:14px 22px;border-radius:14px;font-weight:800;box-shadow:0 16px 36px rgba(0,0,0,0.45);';
+                            document.body.appendChild(alertBox);
+                        }
+                        alertBox.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#34D399;margin-right:8px;"></i> ¡Operación registrada en el Panel! (Para guardar en MySQL usa Laragon o GitHub Codespaces)';
+                        alertBox.style.display = 'block';
+                        setTimeout(() => { alertBox.style.display = 'none'; }, 4500);
+                    });
+                });
+            }
         });
     </script>
 </body>

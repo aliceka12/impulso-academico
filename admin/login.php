@@ -159,14 +159,17 @@ $logoUrl = '../' . ($cfg['logo_url'] ?? 'uploads/img/logo.jpg');
             </div>
             <?php endif; ?>
 
-            <form method="POST">
+            <form method="POST" id="adminLoginForm">
+                <div id="jsLoginError" style="display:none;background:#FEF2F2;border:1px solid #EF4444;color:#991B1B;padding:10px 14px;border-radius:10px;font-size:0.86rem;margin-bottom:16px;">
+                    <i class="fa-solid fa-circle-exclamation"></i> Usuario o contraseña incorrectos. Usa: admin / impulso2026
+                </div>
                 <div class="form-group">
                     <label><i class="fa-solid fa-user-shield" style="color:#0074F0;"></i> Usuario Administrador</label>
-                    <input type="text" name="usuario" class="form-control" value="admin" required>
+                    <input type="text" name="usuario" id="loginUsuario" class="form-control" value="admin" required>
                 </div>
                 <div class="form-group">
                     <label><i class="fa-solid fa-key" style="color:#0074F0;"></i> Contraseña</label>
-                    <input type="password" name="password" class="form-control" value="impulso2026" required>
+                    <input type="password" name="password" id="loginPassword" class="form-control" value="impulso2026" required>
                 </div>
                 <button type="submit" class="btn-submit">
                     <i class="fa-solid fa-right-to-bracket"></i> Ingresar al Sistema de Control
@@ -185,5 +188,20 @@ $logoUrl = '../' . ($cfg['logo_url'] ?? 'uploads/img/logo.jpg');
             </div>
         </div>
     </div>
+    <script>
+        if (window.location.pathname.endsWith('.html') || window.location.hostname.includes('github.io')) {
+            document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                var u = document.getElementById('loginUsuario').value.trim();
+                var p = document.getElementById('loginPassword').value.trim();
+                if (u === 'admin' && p === 'impulso2026') {
+                    sessionStorage.setItem('ia_admin_auth', '1');
+                    window.location.href = 'index.html';
+                } else {
+                    document.getElementById('jsLoginError').style.display = 'block';
+                }
+            });
+        }
+    </script>
 </body>
 </html>
