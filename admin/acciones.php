@@ -425,6 +425,220 @@ try {
             $pdo->prepare("UPDATE solicitudes_web SET estado = ? WHERE id = ?")->execute([$nuevoEst, $solId]);
             $_SESSION['flash_msg'] = "Estado de la solicitud actualizado.";
             break;
+
+        // ====================================================================
+        // 7. CONTROL DE PROYECTOS (PENDIENTES, ENTREGAS, CANCELACIÓN Y AVANCES)
+        // ====================================================================
+        case 'crear_seguimiento_proyecto':
+            $estadoProy = in_array($_POST['estado_proyecto'] ?? '', ['PENDIENTE','ENTREGADO','CANCELADO']) ? $_POST['estado_proyecto'] : 'PENDIENTE';
+            $fecha = $_POST['fecha'] ?: date('Y-m-d');
+            $universidad = trim($_POST['universidad'] ?? 'Pontificia Universidad Católica del Perú (PUCP)');
+            $clienteNombre = trim($_POST['cliente_nombre'] ?? '');
+            $celular = trim($_POST['celular'] ?? '');
+            $areaCarrera = trim($_POST['area_carrera'] ?? 'Contabilidad');
+            $areaAcademica = trim($_POST['area_academica'] ?? 'Bachiller');
+            $listaAvance = trim($_POST['lista_avance'] ?? 'Realidad problemática');
+            $descAct = trim($_POST['descripcion_actividad'] ?? '');
+            $evidencias = trim($_POST['envio_evidencias'] ?? 'Sí, en fecha');
+            $horaIni = trim($_POST['hora_inicio'] ?? '09:00');
+            $horaFin = trim($_POST['hora_fin'] ?? '13:00');
+            $supervision = trim($_POST['supervision_investigacion'] ?? 'En supervisión');
+            $justificacion = trim($_POST['justificacion_demora'] ?? 'Sin demora');
+
+            $stmt = $pdo->prepare("
+                INSERT INTO seguimiento_proyectos (
+                    estado_proyecto, fecha, universidad, cliente_nombre, celular, area_carrera, area_academica,
+                    lista_avance, descripcion_actividad, envio_evidencias, hora_inicio, hora_fin,
+                    supervision_investigacion, justificacion_demora
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $estadoProy, $fecha, $universidad, $clienteNombre, $celular, $areaCarrera, $areaAcademica,
+                $listaAvance, $descAct, $evidencias, $horaIni, $horaFin, $supervision, $justificacion
+            ]);
+            $_SESSION['flash_msg'] = "Avance de proyecto ({$estadoProy}) para {$clienteNombre} registrado.";
+            break;
+
+        case 'cambiar_estado_proyecto':
+            $id = (int)($_POST['proyecto_id'] ?? 0);
+            $nuevoEst = in_array($_POST['nuevo_estado'] ?? '', ['PENDIENTE','ENTREGADO','CANCELADO']) ? $_POST['nuevo_estado'] : 'ENTREGADO';
+            $pdo->prepare("UPDATE seguimiento_proyectos SET estado_proyecto = ? WHERE id = ?")->execute([$nuevoEst, $id]);
+            $_SESSION['flash_msg'] = "Proyecto movido a estado: {$nuevoEst}.";
+            break;
+
+        case 'eliminar_seguimiento_proyecto':
+            $id = (int)($_POST['proyecto_id'] ?? 0);
+            $pdo->prepare("DELETE FROM seguimiento_proyectos WHERE id = ?")->execute([$id]);
+            $_SESSION['flash_msg'] = "Registro de proyecto eliminado.";
+            break;
+
+        // ====================================================================
+        // 8. CONTROL DE INGRESO/SALIDA DE ACTIVIDADES, GASTOS Y PROVEEDORES
+        // ====================================================================
+        case 'crear_registro_actividad_fin':
+            $tipoReg = in_array($_POST['tipo_registro'] ?? '', ['INGRESO_ACTIVIDAD','SALIDA_ACTIVIDAD','GASTO_FINANCIERO','PROVEEDOR'])
+                ? $_POST['tipo_registro'] : 'INGRESO_ACTIVIDAD';
+            $totalExist = (int)$pdo->query("SELECT COUNT(*) FROM registro_actividades_fin WHERE tipo_registro = " . $pdo->quote($tipoReg))->fetchColumn() + 1;
+            $prefijo = $tipoReg === 'GASTO_FINANCIERO' ? 'FC-000-' : ($tipoReg === 'PROVEEDOR' ? 'PR-000-' : ($tipoReg === 'SALIDA_ACTIVIDAD' ? 'SA-000-' : 'FV-000-'));
+            $nroLista = trim($_POST['nro_lista'] ?? '') ?: sprintf('%s%03d', $prefijo, $totalExist);
+            $fecha = $_POST['fecha'] ?: date('Y-m-d');
+            $areaCarrera = trim($_POST['area_carrera'] ?? 'Contabilidad');
+            $areaAcademica = trim($_POST['area_academica'] ?? 'Bachiller');
+            $codAct = trim($_POST['codigo_actividad'] ?? 'C0101');
+            $descripcion = trim($_POST['descripcion'] ?? 'Tesis');
+            $ingresoUnit = (float)($_POST['ingreso_unitario'] ?? 0);
+            $cantidad = max(1, (int)($_POST['cantidad'] ?? 1));
+            $gastoHerr = (float)($_POST['gasto_herramientas'] ?? 0);
+            $montoTotal = ($tipoReg === 'GASTO_FINANCIERO' || $tipoReg === 'PROVEEDOR')
+                ? ($gastoHerr > 0 ? $gastoHerr : $ingresoUnit * $cantidad)
+                : ($ingresoUnit * $cantidad);
+            $contacto = trim($_POST['proveedor_contacto'] ?? '');
+            $cuenta = trim($_POST['cuenta_pago'] ?? 'BCP');
+
+            $stmt = $pdo->prepare("
+                INSERT INTO registro_actividades_fin (
+                    tipo_registro, nro_lista, fecha, area_carrera, area_academica, codigo_actividad,
+                    descripcion, ingreso_unitario, cantidad, monto_total, gasto_herramientas, proveedor_contacto, cuenta_pago
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $tipoReg, $nroLista, $fecha, $areaCarrera, $areaAcademica, $codAct,
+                $descripcion, $ingresoUnit, $cantidad, $montoTotal, $gastoHerr, $contacto, $cuenta
+            ]);
+            $_SESSION['flash_msg'] = "Registro {$nroLista} ({$descripcion}) guardado correctamente.";
+            break;
+
+        case 'eliminar_registro_actividad_fin':
+            $id = (int)($_POST['registro_id'] ?? 0);
+            $pdo->prepare("DELETE FROM registro_actividades_fin WHERE id = ?")->execute([$id]);
+            $_SESSION['flash_msg'] = "Registro de actividad eliminado.";
+            break;
+
+        case 'guardar_actividad_catalogo':
+            $codigo = strtoupper(trim($_POST['codigo'] ?? 'C0108'));
+            $descripcion = trim($_POST['descripcion'] ?? '');
+            $ingresoBase = (float)($_POST['ingreso_base'] ?? 0);
+            $cuenta = trim($_POST['cuenta_corriente'] ?? 'BCP');
+            if ($codigo !== '' && $descripcion !== '') {
+                $stmt = $pdo->prepare("
+                    INSERT INTO catalogo_actividades (codigo, descripcion, ingreso_base, cuenta_corriente)
+                    VALUES (?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion), ingreso_base = VALUES(ingreso_base), cuenta_corriente = VALUES(cuenta_corriente)
+                ");
+                $stmt->execute([$codigo, $descripcion, $ingresoBase, $cuenta]);
+                $_SESSION['flash_msg'] = "Actividad {$codigo} ({$descripcion} - S/ " . number_format($ingresoBase, 2) . ") guardada en el catálogo.";
+            }
+            break;
+
+        // ====================================================================
+        // 9. DOCUMENTACIÓN: BOLETAS, FACTURAS Y COTIZACIONES + RUC ACTUALIZABLE
+        // ====================================================================
+        case 'actualizar_ruc_facturacion':
+            $ruc = trim($_POST['ruc_empresa'] ?? 'EN TRÁMITE');
+            $razon = trim($_POST['razon_social_facturacion'] ?? 'IMPULSO ACADÉMICO');
+            $dir = trim($_POST['direccion_fiscal'] ?? 'Lima – Perú');
+            $stmtUp = $pdo->prepare("
+                INSERT INTO configuracion_web (clave, valor, descripcion) VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE valor = VALUES(valor)
+            ");
+            $stmtUp->execute(['ruc_empresa', $ruc, 'RUC para Boletas y Facturas']);
+            $stmtUp->execute(['razon_social_facturacion', $razon, 'Razón social para comprobantes']);
+            $stmtUp->execute(['direccion_fiscal', $dir, 'Dirección fiscal']);
+            $_SESSION['flash_msg'] = "Datos de RUC ({$ruc}) y Razón Social actualizados para todas las Boletas, Facturas y Cotizaciones.";
+            break;
+
+        case 'crear_comprobante_pago':
+            $tipoDoc = in_array($_POST['tipo_doc'] ?? '', ['BOLETA','FACTURA','COTIZACION']) ? $_POST['tipo_doc'] : 'BOLETA';
+            $totalDocs = (int)$pdo->query("SELECT COUNT(*) FROM comprobantes_pago WHERE tipo_doc = " . $pdo->quote($tipoDoc))->fetchColumn() + 1;
+            $pref = $tipoDoc === 'FACTURA' ? 'FC-000-' : ($tipoDoc === 'COTIZACION' ? 'CT-000-' : 'BV-000-');
+            $nroDoc = trim($_POST['nro_documento'] ?? '') ?: sprintf('%s%03d', $pref, $totalDocs);
+            $fecha = $_POST['fecha_emision'] ?: date('Y-m-d');
+            $cliNombre = trim($_POST['cliente_nombre'] ?? '');
+            $docTipo = trim($_POST['cliente_doc_tipo'] ?? ($tipoDoc === 'FACTURA' ? 'RUC' : 'DNI'));
+            $docNum = trim($_POST['cliente_doc_numero'] ?? '');
+            $celular = trim($_POST['cliente_celular'] ?? '');
+            $uni = trim($_POST['universidad'] ?? '');
+            $areaCarrera = trim($_POST['area_carrera'] ?? 'Contabilidad');
+            $areaAcad = trim($_POST['area_academica'] ?? 'Bachiller');
+            $codAct = trim($_POST['codigo_actividad'] ?? 'C0101');
+            $desc = trim($_POST['descripcion'] ?? 'Tesis');
+            $cant = max(1, (int)($_POST['cantidad'] ?? 1));
+            $precioUnit = (float)($_POST['precio_unitario'] ?? 0);
+            $importeTotal = $cant * $precioUnit;
+            $conIgv = isset($_POST['desglosar_igv']) && $_POST['desglosar_igv'] === '1';
+            $subtotal = $conIgv ? round($importeTotal / 1.18, 2) : $importeTotal;
+            $igv = $conIgv ? round($importeTotal - $subtotal, 2) : 0.00;
+            $cuenta = trim($_POST['cuenta_pago'] ?? 'BCP');
+            $estadoDoc = $_POST['estado_doc'] ?? 'PAGADO';
+            $obs = trim($_POST['observaciones'] ?? '');
+
+            $stmt = $pdo->prepare("
+                INSERT INTO comprobantes_pago (
+                    tipo_doc, nro_documento, fecha_emision, cliente_nombre, cliente_doc_tipo, cliente_doc_numero,
+                    cliente_celular, universidad, area_carrera, area_academica, codigo_actividad, descripcion,
+                    cantidad, precio_unitario, subtotal, igv, importe_total, cuenta_pago, estado_doc, observaciones
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $tipoDoc, $nroDoc, $fecha, $cliNombre, $docTipo, $docNum,
+                $celular, $uni, $areaCarrera, $areaAcad, $codAct, $desc,
+                $cant, $precioUnit, $subtotal, $igv, $importeTotal, $cuenta, $estadoDoc, $obs
+            ]);
+            $_SESSION['flash_msg'] = "{$tipoDoc} {$nroDoc} para {$cliNombre} (S/ " . number_format($importeTotal, 2) . ") generada exitosamente.";
+            break;
+
+        case 'eliminar_comprobante_pago':
+            $id = (int)($_POST['comprobante_id'] ?? 0);
+            $pdo->prepare("DELETE FROM comprobantes_pago WHERE id = ?")->execute([$id]);
+            $_SESSION['flash_msg'] = "Comprobante eliminado.";
+            break;
+
+        // ====================================================================
+        // 10. EMPLEADOS Y CONTROL DE ASISTENCIA / SUPERVISIÓN
+        // ====================================================================
+        case 'crear_empleado_control':
+            $nombre = trim($_POST['nombre_trabajador'] ?? '');
+            $area = ($_POST['area_trabajador'] ?? '') === 'COMERCIAL' ? 'COMERCIAL' : 'INVESTIGACION';
+            $celular = trim($_POST['celular'] ?? '');
+            $uni = trim($_POST['universidad_asignada'] ?? 'Pontificia Universidad Católica del Perú (PUCP)');
+            $descAct = trim($_POST['descripcion_actividad'] ?? '');
+            $evid = trim($_POST['envio_evidencias'] ?? 'Sí, en fecha');
+            $horaIni = trim($_POST['hora_inicio'] ?? '08:00');
+            $horaFin = trim($_POST['hora_fin'] ?? '16:00');
+            $sup = trim($_POST['supervision_jefatura'] ?? 'Aprobado por Jefatura');
+            $just = trim($_POST['justificacion_demora'] ?? 'Sin demora');
+            $s1 = max(0, min(7, (int)($_POST['semana_1_dias'] ?? 5)));
+            $s2 = max(0, min(7, (int)($_POST['semana_2_dias'] ?? 5)));
+            $s3 = max(0, min(7, (int)($_POST['semana_3_dias'] ?? 5)));
+            $s4 = max(0, min(7, (int)($_POST['semana_4_dias'] ?? 5)));
+            $totalDias = $s1 + $s2 + $s3 + $s4;
+            $horasTotales = max(1, (int)($_POST['horas_totales'] ?? ($totalDias * 8)));
+            $importeMensual = (float)($_POST['importe_mensual'] ?? ($area === 'INVESTIGACION' ? 1800.00 : 1500.00));
+            $importeHora = $horasTotales > 0 ? round($importeMensual / $horasTotales, 2) : 0.00;
+            $fecha = $_POST['fecha_registro'] ?: date('Y-m-d');
+
+            $stmt = $pdo->prepare("
+                INSERT INTO empleados_control (
+                    nombre_trabajador, area_trabajador, celular, universidad_asignada, descripcion_actividad,
+                    envio_evidencias, hora_inicio, hora_fin, supervision_jefatura, justificacion_demora,
+                    semana_1_dias, semana_2_dias, semana_3_dias, semana_4_dias, total_dias_asistidos,
+                    horas_totales, importe_hora, importe_mensual, fecha_registro
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $nombre, $area, $celular, $uni, $descAct,
+                $evid, $horaIni, $horaFin, $sup, $just,
+                $s1, $s2, $s3, $s4, $totalDias,
+                $horasTotales, $importeHora, $importeMensual, $fecha
+            ]);
+            $_SESSION['flash_msg'] = "Registro de empleado y asistencia ({$nombre} - {$area}) guardado.";
+            break;
+
+        case 'eliminar_empleado_control':
+            $id = (int)($_POST['empleado_id'] ?? 0);
+            $pdo->prepare("DELETE FROM empleados_control WHERE id = ?")->execute([$id]);
+            $_SESSION['flash_msg'] = "Registro de empleado eliminado.";
+            break;
     }
 } catch (Throwable $e) {
     $_SESSION['flash_error'] = "Error al procesar la acción: " . $e->getMessage();

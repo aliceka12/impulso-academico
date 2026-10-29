@@ -28,6 +28,17 @@ $videos = $pdo->query("SELECT * FROM videos_promocionales ORDER BY destacado DES
 $imagenesWeb = $pdo->query("SELECT * FROM galeria_imagenes ORDER BY clave_seccion ASC, orden ASC")->fetchAll();
 $serviciosWeb = $pdo->query("SELECT * FROM servicios ORDER BY orden ASC")->fetchAll();
 $solicitudes = $pdo->query("SELECT * FROM solicitudes_web ORDER BY id DESC")->fetchAll();
+$catalogoActividades = $pdo->query("SELECT * FROM catalogo_actividades ORDER BY codigo ASC")->fetchAll();
+$seguimientoProyectos = $pdo->query("SELECT * FROM seguimiento_proyectos ORDER BY fecha DESC, id DESC")->fetchAll();
+$registroActividadesFin = $pdo->query("SELECT * FROM registro_actividades_fin ORDER BY id DESC")->fetchAll();
+$comprobantesPago = $pdo->query("SELECT * FROM comprobantes_pago ORDER BY id DESC")->fetchAll();
+$empleadosControl = $pdo->query("SELECT * FROM empleados_control ORDER BY id ASC")->fetchAll();
+
+$conteoProyectos = ['PENDIENTE' => 0, 'ENTREGADO' => 0, 'CANCELADO' => 0];
+foreach ($seguimientoProyectos as $sp) {
+    $estP = $sp['estado_proyecto'] ?? 'PENDIENTE';
+    if (isset($conteoProyectos[$estP])) $conteoProyectos[$estP]++;
+}
 
 // Cálculos de Estados Financieros
 $totalCarteraContratos = 0.0;
@@ -459,30 +470,46 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_error']);
         </div>
 
         <nav class="sidebar-nav">
-            <button class="nav-btn <?= $activeTab === 'dashboard' ? 'active' : '' ?>" onclick="switchTab('dashboard')">
-                <span class="left"><i class="fa-solid fa-chart-pie"></i> Estados Financieros</span>
+            <button class="nav-btn <?= $activeTab === 'dashboard' ? 'active' : '' ?>" data-tab="dashboard" onclick="switchTab('dashboard')">
+                <span class="left"><i class="fa-solid fa-house-laptop"></i> Inicio / Financiero</span>
             </button>
-            <button class="nav-btn <?= $activeTab === 'clientes' ? 'active' : '' ?>" onclick="switchTab('clientes')">
-                <span class="left"><i class="fa-solid fa-user-graduate"></i> Control de Clientes</span>
-                <span class="badge-count"><?= count($clientes) ?></span>
+            <button class="nav-btn <?= $activeTab === 'proyectos' ? 'active' : '' ?>" data-tab="proyectos" onclick="switchTab('proyectos')">
+                <span class="left"><i class="fa-solid fa-diagram-project"></i> Proyectos y Entregas</span>
+                <span class="badge-count"><?= count($seguimientoProyectos) ?></span>
             </button>
-            <button class="nav-btn <?= $activeTab === 'finanzas' ? 'active' : '' ?>" onclick="switchTab('finanzas')">
+            <button class="nav-btn <?= $activeTab === 'documentacion' ? 'active' : '' ?>" data-tab="documentacion" onclick="switchTab('documentacion')">
+                <span class="left"><i class="fa-solid fa-file-invoice-dollar"></i> Boletas y Facturas</span>
+                <span class="badge-count"><?= count($comprobantesPago) ?></span>
+            </button>
+            <button class="nav-btn <?= $activeTab === 'actividades_fin' ? 'active' : '' ?>" data-tab="actividades_fin" onclick="switchTab('actividades_fin')">
+                <span class="left"><i class="fa-solid fa-table-list"></i> Actividades y Gastos</span>
+                <span class="badge-count"><?= count($registroActividadesFin) ?></span>
+            </button>
+            <button class="nav-btn <?= $activeTab === 'finanzas' ? 'active' : '' ?>" data-tab="finanzas" onclick="switchTab('finanzas')">
                 <span class="left"><i class="fa-solid fa-money-bill-transfer"></i> Ingresos y Egresos</span>
                 <span class="badge-count"><?= count($movimientos) ?></span>
             </button>
-            <button class="nav-btn <?= $activeTab === 'campanas' ? 'active' : '' ?>" onclick="switchTab('campanas')">
+            <button class="nav-btn <?= $activeTab === 'clientes' ? 'active' : '' ?>" data-tab="clientes" onclick="switchTab('clientes')">
+                <span class="left"><i class="fa-solid fa-user-graduate"></i> Cartera de Clientes</span>
+                <span class="badge-count"><?= count($clientes) ?></span>
+            </button>
+            <button class="nav-btn <?= $activeTab === 'empleados' ? 'active' : '' ?>" data-tab="empleados" onclick="switchTab('empleados')">
+                <span class="left"><i class="fa-solid fa-users-gear"></i> Empleados y Asistencia</span>
+                <span class="badge-count"><?= count($empleadosControl) ?></span>
+            </button>
+            <button class="nav-btn <?= $activeTab === 'campanas' ? 'active' : '' ?>" data-tab="campanas" onclick="switchTab('campanas')">
                 <span class="left"><i class="fa-solid fa-tags"></i> Campañas Descuento</span>
                 <span class="badge-count"><?= count($campanas) ?></span>
             </button>
-            <button class="nav-btn <?= $activeTab === 'videos' ? 'active' : '' ?>" onclick="switchTab('videos')">
+            <button class="nav-btn <?= $activeTab === 'videos' ? 'active' : '' ?>" data-tab="videos" onclick="switchTab('videos')">
                 <span class="left"><i class="fa-solid fa-video"></i> Videos Promocionales</span>
                 <span class="badge-count"><?= count($videos) ?></span>
             </button>
-            <button class="nav-btn <?= $activeTab === 'imagenes' ? 'active' : '' ?>" onclick="switchTab('imagenes')">
+            <button class="nav-btn <?= $activeTab === 'imagenes' ? 'active' : '' ?>" data-tab="imagenes" onclick="switchTab('imagenes')">
                 <span class="left"><i class="fa-solid fa-images"></i> Imágenes y Servicios BD</span>
                 <span class="badge-count"><?= count($imagenesWeb) ?></span>
             </button>
-            <button class="nav-btn <?= $activeTab === 'solicitudes' ? 'active' : '' ?>" onclick="switchTab('solicitudes')">
+            <button class="nav-btn <?= $activeTab === 'solicitudes' ? 'active' : '' ?>" data-tab="solicitudes" onclick="switchTab('solicitudes')">
                 <span class="left"><i class="fa-solid fa-inbox"></i> Solicitudes Web</span>
                 <?php if ($solicitudesNuevas > 0): ?>
                 <span class="badge-count" style="background:#EF4444;"><?= $solicitudesNuevas ?></span>
@@ -538,6 +565,52 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_error']);
                  TAB 1: DASHBOARD Y ESTADOS FINANCIEROS
                  ================================================================= -->
             <section id="tab-dashboard" class="tab-pane <?= $activeTab === 'dashboard' ? 'active' : '' ?>">
+                <!-- Menú de Acceso Rápido (Idéntico a la hoja "Acceso" del Excel de Registro y Control) -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:22px;" class="no-print">
+                    <button type="button" onclick="switchTab('proyectos')" style="background:linear-gradient(135deg,#0B4F6C,#042152);border:1.5px solid #3898FF;color:#fff;padding:14px 16px;border-radius:14px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;box-shadow:0 8px 20px rgba(0,0,0,0.3);">
+                        <i class="fa-solid fa-diagram-project" style="font-size:1.35rem;color:#FBBF24;"></i>
+                        <div>
+                            <div style="font-weight:900;font-size:0.92rem;">Proyectos</div>
+                            <div style="font-size:0.73rem;color:#9EC3F0;">Pendientes • Entregas</div>
+                        </div>
+                    </button>
+                    <button type="button" onclick="switchTab('documentacion')" style="background:linear-gradient(135deg,#0B4F6C,#042152);border:1.5px solid #FBBF24;color:#fff;padding:14px 16px;border-radius:14px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;box-shadow:0 8px 20px rgba(0,0,0,0.3);">
+                        <i class="fa-solid fa-file-invoice-dollar" style="font-size:1.35rem;color:#FBBF24;"></i>
+                        <div>
+                            <div style="font-weight:900;font-size:0.92rem;">Documentación</div>
+                            <div style="font-size:0.73rem;color:#FDE68A;">Boletas • Facturas • RUC</div>
+                        </div>
+                    </button>
+                    <button type="button" onclick="switchTab('actividades_fin')" style="background:linear-gradient(135deg,#0B4F6C,#042152);border:1.5px solid #3898FF;color:#fff;padding:14px 16px;border-radius:14px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;box-shadow:0 8px 20px rgba(0,0,0,0.3);">
+                        <i class="fa-solid fa-table-list" style="font-size:1.35rem;color:#3898FF;"></i>
+                        <div>
+                            <div style="font-weight:900;font-size:0.92rem;">Ingreso / Salida Act.</div>
+                            <div style="font-size:0.73rem;color:#9EC3F0;">Gastos • Proveedores</div>
+                        </div>
+                    </button>
+                    <button type="button" onclick="switchTab('finanzas')" style="background:linear-gradient(135deg,#0B4F6C,#042152);border:1.5px solid #10B981;color:#fff;padding:14px 16px;border-radius:14px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;box-shadow:0 8px 20px rgba(0,0,0,0.3);">
+                        <i class="fa-solid fa-money-bill-transfer" style="font-size:1.35rem;color:#34D399;"></i>
+                        <div>
+                            <div style="font-weight:900;font-size:0.92rem;">Control Ingresos/Egresos</div>
+                            <div style="font-size:0.73rem;color:#A7F3D0;">Flujo de Caja y Bancos</div>
+                        </div>
+                    </button>
+                    <button type="button" onclick="switchTab('clientes')" style="background:linear-gradient(135deg,#0B4F6C,#042152);border:1.5px solid #3898FF;color:#fff;padding:14px 16px;border-radius:14px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;box-shadow:0 8px 20px rgba(0,0,0,0.3);">
+                        <i class="fa-solid fa-chart-line" style="font-size:1.35rem;color:#3898FF;"></i>
+                        <div>
+                            <div style="font-weight:900;font-size:0.92rem;">Análisis y Clientes</div>
+                            <div style="font-size:0.73rem;color:#9EC3F0;">Cartera y Estadísticas</div>
+                        </div>
+                    </button>
+                    <button type="button" onclick="switchTab('empleados')" style="background:linear-gradient(135deg,#0B4F6C,#042152);border:1.5px solid #3898FF;color:#fff;padding:14px 16px;border-radius:14px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;box-shadow:0 8px 20px rgba(0,0,0,0.3);">
+                        <i class="fa-solid fa-users-gear" style="font-size:1.35rem;color:#FBBF24;"></i>
+                        <div>
+                            <div style="font-weight:900;font-size:0.92rem;">Empleados</div>
+                            <div style="font-size:0.73rem;color:#9EC3F0;">Asistencia Inv. / Com.</div>
+                        </div>
+                    </button>
+                </div>
+
                 <div class="kpi-grid">
                     <div class="kpi-card highlight">
                         <span class="kpi-label"><i class="fa-solid fa-scale-balanced"></i> Utilidad Neta / Flujo de Caja</span>
@@ -1471,6 +1544,845 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_error']);
                     </div>
                 </div>
             </section>
+
+            <!-- =================================================================
+                 TAB 8: PROYECTOS (PENDIENTES, ENTREGAS, CANCELACIÓN Y AVANCES)
+                 ================================================================= -->
+            <section id="tab-proyectos" class="tab-pane <?= $activeTab === 'proyectos' ? 'active' : '' ?>">
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+                    <button type="button" class="btn btn-primary" onclick="filtrarTablaProyectos('TODOS')">
+                        <i class="fa-solid fa-layer-group"></i> Todos (<?= count($seguimientoProyectos) ?>)
+                    </button>
+                    <button type="button" class="btn" style="background:rgba(245,158,11,0.22);border:1.5px solid #FBBF24;color:#FDE68A;" onclick="filtrarTablaProyectos('PENDIENTE')">
+                        <i class="fa-solid fa-clock"></i> Pendientes (<?= (int)$conteoProyectos['PENDIENTE'] ?>)
+                    </button>
+                    <button type="button" class="btn" style="background:rgba(16,185,129,0.22);border:1.5px solid #10B981;color:#A7F3D0;" onclick="filtrarTablaProyectos('ENTREGADO')">
+                        <i class="fa-solid fa-circle-check"></i> Entregas (<?= (int)$conteoProyectos['ENTREGADO'] ?>)
+                    </button>
+                    <button type="button" class="btn" style="background:rgba(239,68,68,0.22);border:1.5px solid #EF4444;color:#FCA5A5;" onclick="filtrarTablaProyectos('CANCELADO')">
+                        <i class="fa-solid fa-ban"></i> Cancelación (<?= (int)$conteoProyectos['CANCELADO'] ?>)
+                    </button>
+                </div>
+
+                <!-- Formulario para registrar nuevo seguimiento de proyecto / avance (idéntico al Excel) -->
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-folder-plus" style="color:#FBBF24;"></i> Registrar Avance / Entrega de Proyecto (Pendientes • Entregas • Cancelación)</h3>
+                    </div>
+                    <div class="panel-body">
+                        <form action="acciones.php" method="POST">
+                            <input type="hidden" name="accion" value="crear_seguimiento_proyecto">
+                            <input type="hidden" name="tab_retorno" value="proyectos">
+                            <div class="form-grid-3">
+                                <div class="form-group">
+                                    <label>Estado de Proyecto *</label>
+                                    <select name="estado_proyecto" class="form-control">
+                                        <option value="PENDIENTE">Pendientes</option>
+                                        <option value="ENTREGADO">Entregas (Completado)</option>
+                                        <option value="CANCELADO">Cancelación</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Fecha *</label>
+                                    <input type="date" name="fecha" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Universidad *</label>
+                                    <input type="text" name="universidad" class="form-control" list="listaUniversidadesExcel" placeholder="Ej. Pontificia Universidad Católica del Perú (PUCP)" required>
+                                    <datalist id="listaUniversidadesExcel">
+                                        <option value="Pontificia Universidad Católica del Perú (PUCP)">
+                                        <option value="Universidad Nacional Mayor de San Marcos (UNMSM)">
+                                        <option value="Universidad César Vallejo (UCV)">
+                                        <option value="Universidad de San Martín de Porres (USMP)">
+                                        <option value="Universidad Peruana de Ciencias Aplicadas (UPC)">
+                                        <option value="Universidad Tecnológica del Perú (UTP)">
+                                        <option value="Universidad Privada del Norte (UPN)">
+                                        <option value="Universidad Nacional Federico Villarreal (UNFV)">
+                                    </datalist>
+                                </div>
+                                <div class="form-group">
+                                    <label>Cliente *</label>
+                                    <input type="text" name="cliente_nombre" class="form-control" placeholder="Ej. Norma Collantes" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Celular del Cliente</label>
+                                    <input type="text" name="celular" class="form-control" placeholder="Ej. 953697434">
+                                </div>
+                                <div class="form-group">
+                                    <label>Área de Carrera</label>
+                                    <select name="area_carrera" class="form-control">
+                                        <option value="Contabilidad">Contabilidad</option>
+                                        <option value="Administración">Administración</option>
+                                        <option value="Administración y Negocios Internacionales">Administración y Negocios Internacionales</option>
+                                        <option value="Educación">Educación</option>
+                                        <option value="Economía y Negocios Internacionales">Economía y Negocios Internacionales</option>
+                                        <option value="Derecho">Derecho</option>
+                                        <option value="Comunicación">Comunicación</option>
+                                        <option value="Arquitectura">Arquitectura</option>
+                                        <option value="Psicología">Psicología</option>
+                                        <option value="Medicina">Medicina</option>
+                                        <option value="Ingeniería">Ingeniería</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Área Académica</label>
+                                    <select name="area_academica" class="form-control">
+                                        <option value="Bachiller">Bachiller</option>
+                                        <option value="Magíster">Magíster</option>
+                                        <option value="Titulado">Titulado</option>
+                                        <option value="Estudiante">Estudiante</option>
+                                        <option value="Doctorado">Doctorado</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Lista de Avances *</label>
+                                    <select name="lista_avance" class="form-control">
+                                        <option value="Realidad problemática">Realidad problemática</option>
+                                        <option value="Justificación">Justificación</option>
+                                        <option value="Problema de investigación">Problema de investigación</option>
+                                        <option value="Objetivo">Objetivo</option>
+                                        <option value="Hipótesis">Hipótesis</option>
+                                        <option value="Marco teórico">Marco teórico</option>
+                                        <option value="Antecedentes">Antecedentes</option>
+                                        <option value="Matriz de Operacionalización">Matriz de Operacionalización</option>
+                                        <option value="Matriz de Consistencia">Matriz de Consistencia</option>
+                                        <option value="Metodología">Metodología</option>
+                                        <option value="Resultados">Resultados</option>
+                                        <option value="Discusión">Discusión</option>
+                                        <option value="Referencias">Referencias</option>
+                                        <option value="Anexos">Anexos</option>
+                                        <option value="Marco conceptual">Marco conceptual</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>¿Se envió evidencias?</label>
+                                    <select name="envio_evidencias" class="form-control">
+                                        <option value="Sí, en fecha">Sí, en fecha</option>
+                                        <option value="Sí, pero es fuera de fecha">Sí, pero es fuera de fecha</option>
+                                        <option value="Pendiente de envío">Pendiente de envío</option>
+                                        <option value="No enviado">No enviado</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Hora Inicio</label>
+                                    <input type="time" name="hora_inicio" class="form-control" value="09:00">
+                                </div>
+                                <div class="form-group">
+                                    <label>Hora Fin</label>
+                                    <input type="time" name="hora_fin" class="form-control" value="13:00">
+                                </div>
+                                <div class="form-group">
+                                    <label>Supervisión de la Investigación</label>
+                                    <input type="text" name="supervision_investigacion" class="form-control" value="Aprobado por supervisión">
+                                </div>
+                                <div class="form-group" style="grid-column: span 2;">
+                                    <label>Descripción de Actividad *</label>
+                                    <input type="text" name="descripcion_actividad" class="form-control" placeholder="Detalle del capítulo o entregable trabajado" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Justificación de Demora</label>
+                                    <input type="text" name="justificacion_demora" class="form-control" value="Sin demora">
+                                </div>
+                            </div>
+                            <div style="margin-top:14px;text-align:right;">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa-solid fa-plus"></i> Guardar en Control de Proyectos
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tabla de Proyectos (Pendientes, Entregas, Cancelación) -->
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-table" style="color:#3898FF;"></i> Matriz de Seguimiento de Proyectos, Entregas y Avances</h3>
+                    </div>
+                    <div class="panel-body" style="padding:0;">
+                        <div class="table-responsive">
+                            <table class="admin-table" id="tablaSeguimientoProyectos">
+                                <thead>
+                                    <tr>
+                                        <th>Estado</th>
+                                        <th>Fecha</th>
+                                        <th>Universidad</th>
+                                        <th>Cliente / Celular</th>
+                                        <th>Lista de Avance</th>
+                                        <th>Descripción de Actividad</th>
+                                        <th>¿Se envió evidencias?</th>
+                                        <th>Horario</th>
+                                        <th>Supervisión / Justificación</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($seguimientoProyectos as $sp):
+                                        $pillProy = $sp['estado_proyecto'] === 'ENTREGADO' ? 'pill-success' : ($sp['estado_proyecto'] === 'CANCELADO' ? 'pill-danger' : 'pill-warning');
+                                    ?>
+                                    <tr data-estado-proy="<?= htmlspecialchars($sp['estado_proyecto']) ?>">
+                                        <td><span class="status-pill <?= $pillProy ?>"><?= htmlspecialchars($sp['estado_proyecto']) ?></span></td>
+                                        <td><?= date('d/m/Y', strtotime($sp['fecha'])) ?></td>
+                                        <td>
+                                            <strong><?= htmlspecialchars($sp['universidad']) ?></strong>
+                                            <div style="font-size:0.74rem;color:#85C1FF;"><?= htmlspecialchars($sp['area_carrera']) ?> • <?= htmlspecialchars($sp['area_academica']) ?></div>
+                                        </td>
+                                        <td>
+                                            <strong><?= htmlspecialchars($sp['cliente_nombre']) ?></strong>
+                                            <?php if (!empty($sp['celular'])): ?>
+                                            <div style="font-size:0.74rem;color:#34D399;"><i class="fa-brands fa-whatsapp"></i> <?= htmlspecialchars($sp['celular']) ?></div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><span class="status-pill pill-blue"><?= htmlspecialchars($sp['lista_avance']) ?></span></td>
+                                        <td style="max-width:220px;"><?= htmlspecialchars($sp['descripcion_actividad']) ?></td>
+                                        <td><?= htmlspecialchars($sp['envio_evidencias']) ?></td>
+                                        <td style="white-space:nowrap;"><?= htmlspecialchars($sp['hora_inicio']) ?> - <?= htmlspecialchars($sp['hora_fin']) ?></td>
+                                        <td>
+                                            <div style="font-weight:700;"><?= htmlspecialchars($sp['supervision_investigacion']) ?></div>
+                                            <div style="font-size:0.73rem;color:#94A3B8;"><?= htmlspecialchars($sp['justificacion_demora']) ?></div>
+                                        </td>
+                                        <td>
+                                            <div style="display:flex;gap:5px;">
+                                                <?php if ($sp['estado_proyecto'] !== 'ENTREGADO'): ?>
+                                                <form action="acciones.php" method="POST">
+                                                    <input type="hidden" name="accion" value="cambiar_estado_proyecto">
+                                                    <input type="hidden" name="proyecto_id" value="<?= (int)$sp['id'] ?>">
+                                                    <input type="hidden" name="nuevo_estado" value="ENTREGADO">
+                                                    <input type="hidden" name="tab_retorno" value="proyectos">
+                                                    <button type="submit" class="btn btn-success btn-sm" title="Marcar como Entregado"><i class="fa-solid fa-check"></i></button>
+                                                </form>
+                                                <?php endif; ?>
+                                                <form action="acciones.php" method="POST">
+                                                    <input type="hidden" name="accion" value="eliminar_seguimiento_proyecto">
+                                                    <input type="hidden" name="proyecto_id" value="<?= (int)$sp['id'] ?>">
+                                                    <input type="hidden" name="tab_retorno" value="proyectos">
+                                                    <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =================================================================
+                 TAB 9: DOCUMENTACIÓN (BOLETAS, FACTURAS Y COTIZACIONES + RUC ACTUALIZABLE)
+                 ================================================================= -->
+            <section id="tab-documentacion" class="tab-pane <?= $activeTab === 'documentacion' ? 'active' : '' ?>">
+                <!-- Tarjeta 1: Configuración de RUC (Se actualiza en 1 clic cuando tengan su RUC oficial) -->
+                <div class="panel-card" style="border-color:#FBBF24;">
+                    <div class="panel-header" style="background:rgba(245,158,11,0.14);">
+                        <h3><i class="fa-solid fa-building-shield" style="color:#FBBF24;"></i> Configuración de R.U.C. y Razón Social para Boletas y Facturas</h3>
+                        <span class="status-pill pill-warning">Actualizable en cualquier momento</span>
+                    </div>
+                    <div class="panel-body">
+                        <form action="acciones.php" method="POST">
+                            <input type="hidden" name="accion" value="actualizar_ruc_facturacion">
+                            <input type="hidden" name="tab_retorno" value="documentacion">
+                            <div class="form-grid-3">
+                                <div class="form-group">
+                                    <label>Número de R.U.C. de la Empresa (Aparece en todas las Boletas y Facturas)</label>
+                                    <input type="text" name="ruc_empresa" class="form-control" value="<?= htmlspecialchars($cfg['ruc_empresa'] ?? 'EN TRÁMITE (Editable al obtener RUC)') ?>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Razón Social / Denominación</label>
+                                    <input type="text" name="razon_social_facturacion" class="form-control" value="<?= htmlspecialchars($cfg['razon_social_facturacion'] ?? 'IMPULSO ACADÉMICO - SISTEMA DE GESTIÓN Y APOYO A LA INVESTIGACIÓN') ?>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Dirección Fiscal / Ciudad</label>
+                                    <input type="text" name="direccion_fiscal" class="form-control" value="<?= htmlspecialchars($cfg['direccion_fiscal'] ?? 'Lima – Perú') ?>">
+                                </div>
+                            </div>
+                            <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                                <small style="color:#FDE68A;"><i class="fa-solid fa-circle-info"></i> Mientras el RUC esté en trámite, puedes emitir Boletas, Recibos y Cotizaciones; apenas tengan su número de RUC (ej. 20XXXXXXXXX), escríbelo aquí y todos los comprobantes se actualizarán automáticamente.</small>
+                                <button type="submit" class="btn" style="background:#FBBF24;color:#02122C;font-weight:900;">
+                                    <i class="fa-solid fa-floppy-disk"></i> Guardar R.U.C. y Datos Fiscales
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 2: Emitir Boleta, Factura o Cotización (Con autocompletado de Código de Actividad C0101..C0107) -->
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-file-invoice-dollar" style="color:#34D399;"></i> Emitir Nueva Boleta de Venta, Factura o Cotización</h3>
+                    </div>
+                    <div class="panel-body">
+                        <form action="acciones.php" method="POST">
+                            <input type="hidden" name="accion" value="crear_comprobante_pago">
+                            <input type="hidden" name="tab_retorno" value="documentacion">
+                            <div class="form-grid-3">
+                                <div class="form-group">
+                                    <label>Tipo de Comprobante *</label>
+                                    <select name="tipo_doc" id="docTipoSelect" class="form-control" onchange="actualizarPrefijoComprobante(this.value)">
+                                        <option value="BOLETA">Boleta de Venta (BV-000-XXX)</option>
+                                        <option value="FACTURA">Factura Comercial (FC-000-XXX)</option>
+                                        <option value="COTIZACION">Cotización Formal (CT-000-XXX)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>N° de Lista / Comprobante (Automático si se deja vacío)</label>
+                                    <input type="text" name="nro_documento" id="docNroInput" class="form-control" placeholder="Ej. BV-000-002">
+                                </div>
+                                <div class="form-group">
+                                    <label>Fecha de Emisión *</label>
+                                    <input type="date" name="fecha_emision" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Código de Actividad (Autocompleta Descripción e Ingreso) *</label>
+                                    <select name="codigo_actividad" class="form-control" onchange="autocompletarDesdeCatalogo(this, 'docDescInput', 'docPrecioInput', 'docCuentaSelect')">
+                                        <?php foreach ($catalogoActividades as $ca): ?>
+                                        <option value="<?= htmlspecialchars($ca['codigo']) ?>"
+                                                data-desc="<?= htmlspecialchars($ca['descripcion']) ?>"
+                                                data-precio="<?= (float)$ca['ingreso_base'] ?>"
+                                                data-cuenta="<?= htmlspecialchars($ca['cuenta_corriente']) ?>">
+                                            <?= htmlspecialchars($ca['codigo']) ?> — <?= htmlspecialchars($ca['descripcion']) ?> (S/ <?= number_format((float)$ca['ingreso_base'], 2) ?>)
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Descripción de la Actividad *</label>
+                                    <input type="text" name="descripcion" id="docDescInput" class="form-control" value="Tesis" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Importe / Ingreso Unitario (S/) *</label>
+                                    <input type="number" step="0.01" name="precio_unitario" id="docPrecioInput" class="form-control" value="2500.00" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Nombre del Cliente / Razón Social *</label>
+                                    <input type="text" name="cliente_nombre" class="form-control" placeholder="Ej. Norma Collantes" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tipo y N° Documento del Cliente</label>
+                                    <div style="display:flex;gap:6px;">
+                                        <select name="cliente_doc_tipo" class="form-control" style="max-width:95px;">
+                                            <option value="DNI">DNI</option>
+                                            <option value="RUC">RUC</option>
+                                            <option value="CE">CE</option>
+                                        </select>
+                                        <input type="text" name="cliente_doc_numero" class="form-control" placeholder="N° DNI o RUC">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Celular del Cliente</label>
+                                    <input type="text" name="cliente_celular" class="form-control" placeholder="Ej. 953697434">
+                                </div>
+                                <div class="form-group">
+                                    <label>Universidad</label>
+                                    <input type="text" name="universidad" class="form-control" list="listaUniversidadesExcel" placeholder="Ej. PUCP / UNMSM / UCV">
+                                </div>
+                                <div class="form-group">
+                                    <label>Área de Carrera</label>
+                                    <select name="area_carrera" class="form-control">
+                                        <option value="Contabilidad">Contabilidad</option>
+                                        <option value="Administración">Administración</option>
+                                        <option value="Administración y Negocios Internacionales">Administración y Negocios Internacionales</option>
+                                        <option value="Educación">Educación</option>
+                                        <option value="Economía y Negocios Internacionales">Economía y Negocios Internacionales</option>
+                                        <option value="Derecho">Derecho</option>
+                                        <option value="Comunicación">Comunicación</option>
+                                        <option value="Arquitectura">Arquitectura</option>
+                                        <option value="Psicología">Psicología</option>
+                                        <option value="Medicina">Medicina</option>
+                                        <option value="Ingeniería">Ingeniería</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Área Académica</label>
+                                    <select name="area_academica" class="form-control">
+                                        <option value="Bachiller">Bachiller</option>
+                                        <option value="Magíster">Magíster</option>
+                                        <option value="Titulado">Titulado</option>
+                                        <option value="Estudiante">Estudiante</option>
+                                        <option value="Doctorado">Doctorado</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Cuenta Corriente de Pago *</label>
+                                    <select name="cuenta_pago" id="docCuentaSelect" class="form-control">
+                                        <option value="BCP">BCP</option>
+                                        <option value="Interbank">Interbank</option>
+                                        <option value="Banco de la Nación">Banco de la Nación</option>
+                                        <option value="CMR">CMR</option>
+                                        <option value="BBVA">BBVA</option>
+                                        <option value="Yape / Plin">Yape / Plin</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Desglosar IGV (18%)</label>
+                                    <select name="desglosar_igv" class="form-control">
+                                        <option value="0">Sin desglose IGV (Monto neto directo)</option>
+                                        <option value="1">Sí, desglosar Subtotal + IGV 18%</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Observaciones</label>
+                                    <input type="text" name="observaciones" class="form-control" placeholder="Ej. 1ra cuota de asesoría">
+                                </div>
+                            </div>
+                            <div style="margin-top:14px;text-align:right;">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fa-solid fa-file-circle-plus"></i> Emitir y Guardar Comprobante
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Listado de Boletas, Facturas y Cotizaciones -->
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-receipt" style="color:#3898FF;"></i> Registro de Boletas, Facturas y Cotizaciones Emitidas</h3>
+                    </div>
+                    <div class="panel-body" style="padding:0;">
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>N° Lista / Doc.</th>
+                                        <th>Fecha</th>
+                                        <th>Cliente</th>
+                                        <th>Código Act.</th>
+                                        <th>Descripción</th>
+                                        <th>Área Carrera / Académica</th>
+                                        <th>Cuenta Corriente</th>
+                                        <th>Importe Total</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($comprobantesPago as $cp):
+                                        $pillDoc = $cp['tipo_doc'] === 'FACTURA' ? 'pill-blue' : ($cp['tipo_doc'] === 'COTIZACION' ? 'pill-warning' : 'pill-success');
+                                    ?>
+                                    <tr>
+                                        <td><span class="status-pill <?= $pillDoc ?>"><?= htmlspecialchars($cp['tipo_doc']) ?></span></td>
+                                        <td style="font-weight:900;color:#fff;"><?= htmlspecialchars($cp['nro_documento']) ?></td>
+                                        <td><?= date('d/m/Y', strtotime($cp['fecha_emision'])) ?></td>
+                                        <td>
+                                            <strong><?= htmlspecialchars($cp['cliente_nombre']) ?></strong>
+                                            <div style="font-size:0.73rem;color:#94A3B8;"><?= htmlspecialchars($cp['cliente_doc_tipo']) ?>: <?= htmlspecialchars($cp['cliente_doc_numero'] ?: '—') ?></div>
+                                        </td>
+                                        <td><span class="status-pill pill-blue"><?= htmlspecialchars($cp['codigo_actividad']) ?></span></td>
+                                        <td><?= htmlspecialchars($cp['descripcion']) ?></td>
+                                        <td><?= htmlspecialchars($cp['area_carrera']) ?> (<?= htmlspecialchars($cp['area_academica']) ?>)</td>
+                                        <td><strong><?= htmlspecialchars($cp['cuenta_pago']) ?></strong></td>
+                                        <td style="font-weight:900;color:#34D399;">S/ <?= number_format((float)$cp['importe_total'], 2) ?></td>
+                                        <td>
+                                            <div style="display:flex;gap:6px;">
+                                                <a href="comprobante.php?id=<?= (int)$cp['id'] ?>" class="btn btn-sm" style="background:#FBBF24;color:#02122C;font-weight:900;">
+                                                    <i class="fa-solid fa-print"></i> Ver / Imprimir A4
+                                                </a>
+                                                <form action="acciones.php" method="POST">
+                                                    <input type="hidden" name="accion" value="eliminar_comprobante_pago">
+                                                    <input type="hidden" name="comprobante_id" value="<?= (int)$cp['id'] ?>">
+                                                    <input type="hidden" name="tab_retorno" value="documentacion">
+                                                    <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =================================================================
+                 TAB 10: INGRESO/SALIDA DE ACTIVIDADES, GASTOS FINANCIEROS Y PROVEEDORES
+                 ================================================================= -->
+            <section id="tab-actividades_fin" class="tab-pane <?= $activeTab === 'actividades_fin' ? 'active' : '' ?>">
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+                    <button type="button" class="btn btn-primary" onclick="filtrarTablaActividades('TODOS')">
+                        <i class="fa-solid fa-table-list"></i> Todos (<?= count($registroActividadesFin) ?>)
+                    </button>
+                    <button type="button" class="btn" style="background:rgba(16,185,129,0.22);border:1.5px solid #10B981;color:#A7F3D0;" onclick="filtrarTablaActividades('INGRESO_ACTIVIDAD')">
+                        <i class="fa-solid fa-arrow-down-wide-short"></i> Ingreso de Actividades (FV-000)
+                    </button>
+                    <button type="button" class="btn" style="background:rgba(56,152,255,0.22);border:1.5px solid #3898FF;color:#BAE6FD;" onclick="filtrarTablaActividades('SALIDA_ACTIVIDAD')">
+                        <i class="fa-solid fa-arrow-up-wide-short"></i> Salida de Actividades
+                    </button>
+                    <button type="button" class="btn" style="background:rgba(245,158,11,0.22);border:1.5px solid #FBBF24;color:#FDE68A;" onclick="filtrarTablaActividades('GASTO_FINANCIERO')">
+                        <i class="fa-solid fa-Scale-unbalanced"></i> Gastos Financieros (FC-000)
+                    </button>
+                    <button type="button" class="btn" style="background:rgba(239,68,68,0.22);border:1.5px solid #EF4444;color:#FCA5A5;" onclick="filtrarTablaActividades('PROVEEDOR')">
+                        <i class="fa-solid fa-screwdriver-wrench"></i> Proveedores y Herramientas (ChatGPT/SPSS)
+                    </button>
+                </div>
+
+                <!-- Catálogo Maestro "Listas de Actividades" (C0101 - C0107) -->
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-list-check" style="color:#FBBF24;"></i> Catálogo Maestro "Listas de Actividades" (Códigos C0101 – C0107 y Cuentas de Pago)</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:16px;">
+                            <?php foreach ($catalogoActividades as $ca): ?>
+                            <div style="background:rgba(2,18,44,0.75);border:1px solid var(--ia-border);border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+                                <div>
+                                    <span class="status-pill pill-blue"><?= htmlspecialchars($ca['codigo']) ?></span>
+                                    <div style="font-weight:800;margin-top:4px;"><?= htmlspecialchars($ca['descripcion']) ?></div>
+                                    <small style="color:#85C1FF;">Cuenta: <?= htmlspecialchars($ca['cuenta_corriente']) ?></small>
+                                </div>
+                                <div style="font-weight:900;color:#34D399;font-size:1rem;">S/ <?= number_format((float)$ca['ingreso_base'], 0) ?></div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <form action="acciones.php" method="POST" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;align-items:end;">
+                            <input type="hidden" name="accion" value="guardar_actividad_catalogo">
+                            <input type="hidden" name="tab_retorno" value="actividades_fin">
+                            <div class="form-group">
+                                <label>Código (Ej. C0108 o editar C0101)</label>
+                                <input type="text" name="codigo" class="form-control" placeholder="C0108" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Descripción de Actividad</label>
+                                <input type="text" name="descripcion" class="form-control" placeholder="Ej. Informe de Prácticas" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Ingreso Base (S/)</label>
+                                <input type="number" step="0.01" name="ingreso_base" class="form-control" placeholder="1200" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Cuenta Corriente</label>
+                                <select name="cuenta_corriente" class="form-control">
+                                    <option value="BCP">BCP</option>
+                                    <option value="Interbank">Interbank</option>
+                                    <option value="Banco de la Nación">Banco de la Nación</option>
+                                    <option value="CMR">CMR</option>
+                                    <option value="BBVA">BBVA</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar Código</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Formulario para Ingreso de Actividades / Salida / Gastos Financieros / Proveedores -->
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-plus-circle" style="color:#34D399;"></i> Registrar Ingreso de Actividad, Salida, Gasto Financiero o Proveedor</h3>
+                    </div>
+                    <div class="panel-body">
+                        <form action="acciones.php" method="POST">
+                            <input type="hidden" name="accion" value="crear_registro_actividad_fin">
+                            <input type="hidden" name="tab_retorno" value="actividades_fin">
+                            <div class="form-grid-3">
+                                <div class="form-group">
+                                    <label>Tipo de Hoja / Registro *</label>
+                                    <select name="tipo_registro" class="form-control">
+                                        <option value="INGRESO_ACTIVIDAD">Ingreso de Actividades (FV-000-XXX)</option>
+                                        <option value="SALIDA_ACTIVIDAD">Salida de Actividades (SA-000-XXX)</option>
+                                        <option value="GASTO_FINANCIERO">Gastos Financieros (FC-000-XXX)</option>
+                                        <option value="PROVEEDOR">Proveedores y Herramientas (ChatGPT, SPSS, Turnitin)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Nro. Lista (Automático si se deja vacío)</label>
+                                    <input type="text" name="nro_lista" class="form-control" placeholder="Ej. FV-000-008 o FC-000-002">
+                                </div>
+                                <div class="form-group">
+                                    <label>Fecha *</label>
+                                    <input type="date" name="fecha" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Código de Actividades *</label>
+                                    <select name="codigo_actividad" class="form-control" onchange="autocompletarDesdeCatalogo(this, 'actDescInput', 'actIngresoInput', 'actCuentaSelect')">
+                                        <?php foreach ($catalogoActividades as $ca): ?>
+                                        <option value="<?= htmlspecialchars($ca['codigo']) ?>"
+                                                data-desc="<?= htmlspecialchars($ca['descripcion']) ?>"
+                                                data-precio="<?= (float)$ca['ingreso_base'] ?>"
+                                                data-cuenta="<?= htmlspecialchars($ca['cuenta_corriente']) ?>">
+                                            <?= htmlspecialchars($ca['codigo']) ?> — <?= htmlspecialchars($ca['descripcion']) ?> (S/ <?= number_format((float)$ca['ingreso_base'], 2) ?>)
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Descripción / Herramienta *</label>
+                                    <input type="text" name="descripcion" id="actDescInput" class="form-control" value="Tesis" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Ingreso / Importe Unitario (S/)</label>
+                                    <input type="number" step="0.01" name="ingreso_unitario" id="actIngresoInput" class="form-control" value="2500.00">
+                                </div>
+                                <div class="form-group">
+                                    <label>Cantidad</label>
+                                    <input type="number" name="cantidad" class="form-control" value="1" min="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Gasto de Herramientas (S/) (Para Gastos / Proveedores)</label>
+                                    <input type="number" step="0.01" name="gasto_herramientas" class="form-control" value="0.00">
+                                </div>
+                                <div class="form-group">
+                                    <label>Cuenta Corriente de Pago</label>
+                                    <select name="cuenta_pago" id="actCuentaSelect" class="form-control">
+                                        <option value="BCP">BCP</option>
+                                        <option value="Interbank">Interbank</option>
+                                        <option value="Banco de la Nación">Banco de la Nación</option>
+                                        <option value="CMR">CMR</option>
+                                        <option value="BBVA">BBVA</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Área de Carrera</label>
+                                    <select name="area_carrera" class="form-control">
+                                        <option value="Contabilidad">Contabilidad</option>
+                                        <option value="Administración">Administración</option>
+                                        <option value="Administración y Negocios Internacionales">Administración y Negocios Internacionales</option>
+                                        <option value="Educación">Educación</option>
+                                        <option value="Economía y Negocios Internacionales">Economía y Negocios Internacionales</option>
+                                        <option value="Derecho">Derecho</option>
+                                        <option value="Comunicación">Comunicación</option>
+                                        <option value="Arquitectura">Arquitectura</option>
+                                        <option value="Psicología">Psicología</option>
+                                        <option value="Medicina">Medicina</option>
+                                        <option value="Ingeniería">Ingeniería</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Área Académica</label>
+                                    <select name="area_academica" class="form-control">
+                                        <option value="Bachiller">Bachiller</option>
+                                        <option value="Magíster">Magíster</option>
+                                        <option value="Titulado">Titulado</option>
+                                        <option value="Estudiante">Estudiante</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Cliente / Contacto Proveedor (Celular)</label>
+                                    <input type="text" name="proveedor_contacto" class="form-control" placeholder="Ej. Norma Collantes / 953697434">
+                                </div>
+                            </div>
+                            <div style="margin-top:14px;text-align:right;">
+                                <button type="submit" class="btn btn-success"><i class="fa-solid fa-check"></i> Registrar en Tabla de Actividades</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tabla de Ingreso de Actividades, Salida, Gastos Financieros y Proveedores -->
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-table-columns" style="color:#3898FF;"></i> Registro Consolidado de Actividades y Gastos (Sin errores #N/D)</h3>
+                    </div>
+                    <div class="panel-body" style="padding:0;">
+                        <div class="table-responsive">
+                            <table class="admin-table" id="tablaRegistroActividades">
+                                <thead>
+                                    <tr>
+                                        <th>Hoja</th>
+                                        <th>Nro. Lista</th>
+                                        <th>Fecha</th>
+                                        <th>Área Carrera</th>
+                                        <th>Área Académica</th>
+                                        <th>Código Act.</th>
+                                        <th>Descripción / Herramienta</th>
+                                        <th>Ingreso / Importe</th>
+                                        <th>Cant.</th>
+                                        <th>Gasto Herram.</th>
+                                        <th>Cuenta Corriente</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($registroActividadesFin as $ra):
+                                        $pillRa = $ra['tipo_registro'] === 'INGRESO_ACTIVIDAD' ? 'pill-success' : ($ra['tipo_registro'] === 'SALIDA_ACTIVIDAD' ? 'pill-blue' : 'pill-warning');
+                                    ?>
+                                    <tr data-tipo-act="<?= htmlspecialchars($ra['tipo_registro']) ?>">
+                                        <td><span class="status-pill <?= $pillRa ?>"><?= htmlspecialchars($ra['tipo_registro']) ?></span></td>
+                                        <td style="font-weight:800;"><?= htmlspecialchars($ra['nro_lista']) ?></td>
+                                        <td><?= date('d/m/Y', strtotime($ra['fecha'])) ?></td>
+                                        <td><?= htmlspecialchars($ra['area_carrera']) ?></td>
+                                        <td><?= htmlspecialchars($ra['area_academica']) ?></td>
+                                        <td><span class="status-pill pill-blue"><?= htmlspecialchars($ra['codigo_actividad']) ?></span></td>
+                                        <td>
+                                            <strong><?= htmlspecialchars($ra['descripcion']) ?></strong>
+                                            <?php if (!empty($ra['proveedor_contacto'])): ?>
+                                            <div style="font-size:0.73rem;color:#94A3B8;"><?= htmlspecialchars($ra['proveedor_contacto']) ?></div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="font-weight:800;color:#34D399;">S/ <?= number_format((float)$ra['ingreso_unitario'], 2) ?></td>
+                                        <td><?= (int)$ra['cantidad'] ?></td>
+                                        <td style="color:#FBBF24;font-weight:700;">S/ <?= number_format((float)$ra['gasto_herramientas'], 2) ?></td>
+                                        <td><strong><?= htmlspecialchars($ra['cuenta_pago']) ?></strong></td>
+                                        <td>
+                                            <form action="acciones.php" method="POST">
+                                                <input type="hidden" name="accion" value="eliminar_registro_actividad_fin">
+                                                <input type="hidden" name="registro_id" value="<?= (int)$ra['id'] ?>">
+                                                <input type="hidden" name="tab_retorno" value="actividades_fin">
+                                                <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =================================================================
+                 TAB 11: EMPLEADOS Y CONTROL DE ASISTENCIA (INVESTIGACIÓN Y COMERCIAL)
+                 ================================================================= -->
+            <section id="tab-empleados" class="tab-pane <?= $activeTab === 'empleados' ? 'active' : '' ?>">
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-user-clock" style="color:#FBBF24;"></i> Registrar Empleado / Asistencia Semanal (Investigación y Comercial)</h3>
+                    </div>
+                    <div class="panel-body">
+                        <form action="acciones.php" method="POST">
+                            <input type="hidden" name="accion" value="crear_empleado_control">
+                            <input type="hidden" name="tab_retorno" value="empleados">
+                            <div class="form-grid-3">
+                                <div class="form-group">
+                                    <label>Trabajador / Empleado *</label>
+                                    <input type="text" name="nombre_trabajador" class="form-control" placeholder="Ej. Eugenia / Alice" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Área de Asistencia *</label>
+                                    <select name="area_trabajador" class="form-control">
+                                        <option value="INVESTIGACION">Asistencia de Investigación (Base S/ 1,800)</option>
+                                        <option value="COMERCIAL">Asistencia Comercial (Base S/ 1,500)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Celular</label>
+                                    <input type="text" name="celular" class="form-control" placeholder="Ej. 953697434">
+                                </div>
+                                <div class="form-group">
+                                    <label>Universidad Asignada</label>
+                                    <input type="text" name="universidad_asignada" class="form-control" list="listaUniversidadesExcel" value="Pontificia Universidad Católica del Perú (PUCP)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Descripción de Actividad</label>
+                                    <input type="text" name="descripcion_actividad" class="form-control" value="Desarrollo y supervisión de avances de investigación" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>¿Se envió evidencias?</label>
+                                    <select name="envio_evidencias" class="form-control">
+                                        <option value="Sí, en fecha">Sí, en fecha</option>
+                                        <option value="Sí, pero es fuera de fecha">Sí, pero es fuera de fecha</option>
+                                        <option value="Pendiente">Pendiente</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Días Asistidos (Sem 1 / Sem 2 / Sem 3 / Sem 4)</label>
+                                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+                                        <input type="number" name="semana_1_dias" class="form-control" value="5" min="0" max="7" title="Semana 1">
+                                        <input type="number" name="semana_2_dias" class="form-control" value="5" min="0" max="7" title="Semana 2">
+                                        <input type="number" name="semana_3_dias" class="form-control" value="5" min="0" max="7" title="Semana 3">
+                                        <input type="number" name="semana_4_dias" class="form-control" value="5" min="0" max="7" title="Semana 4">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Horas Mes</label>
+                                    <input type="number" name="horas_totales" class="form-control" value="160" min="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Importe Mensual (S/)</label>
+                                    <input type="number" step="0.01" name="importe_mensual" class="form-control" value="1800.00">
+                                </div>
+                                <div class="form-group">
+                                    <label>Hora Inicio / Fin</label>
+                                    <div style="display:flex;gap:6px;">
+                                        <input type="time" name="hora_inicio" class="form-control" value="08:00">
+                                        <input type="time" name="hora_fin" class="form-control" value="16:00">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Supervisión de la Jefatura</label>
+                                    <input type="text" name="supervision_jefatura" class="form-control" value="Aprobado por Jefatura">
+                                </div>
+                                <div class="form-group">
+                                    <label>Justificación de Demora</label>
+                                    <input type="text" name="justificacion_demora" class="form-control" value="Sin demora">
+                                </div>
+                            </div>
+                            <div style="margin-top:14px;text-align:right;">
+                                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Guardar Asistencia y Pago de Empleado</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tabla de Empleados y Control de Asistencia -->
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-users-viewfinder" style="color:#3898FF;"></i> Control Mensual de Empleados, Horas e Importe por Hora (Investigación y Comercial)</h3>
+                    </div>
+                    <div class="panel-body" style="padding:0;">
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Empleado</th>
+                                        <th>Área</th>
+                                        <th>Universidad / Actividad</th>
+                                        <th>Evidencias / Horario</th>
+                                        <th>Sem 1</th>
+                                        <th>Sem 2</th>
+                                        <th>Sem 3</th>
+                                        <th>Sem 4</th>
+                                        <th>Asistencia</th>
+                                        <th>Horas</th>
+                                        <th>Importe / H</th>
+                                        <th>Importe Total</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($empleadosControl as $em): ?>
+                                    <tr>
+                                        <td>
+                                            <strong><?= htmlspecialchars($em['nombre_trabajador']) ?></strong>
+                                            <div style="font-size:0.73rem;color:#34D399;"><?= htmlspecialchars($em['celular']) ?></div>
+                                        </td>
+                                        <td>
+                                            <span class="status-pill <?= $em['area_trabajador'] === 'INVESTIGACION' ? 'pill-blue' : 'pill-warning' ?>">
+                                                <?= htmlspecialchars($em['area_trabajador']) ?>
+                                            </span>
+                                        </td>
+                                        <td style="max-width:220px;">
+                                            <div style="font-weight:700;"><?= htmlspecialchars($em['universidad_asignada']) ?></div>
+                                            <div style="font-size:0.74rem;color:#9EC3F0;"><?= htmlspecialchars($em['descripcion_actividad']) ?></div>
+                                        </td>
+                                        <td>
+                                            <div><?= htmlspecialchars($em['envio_evidencias']) ?></div>
+                                            <small style="color:#94A3B8;"><?= htmlspecialchars($em['hora_inicio']) ?> - <?= htmlspecialchars($em['hora_fin']) ?></small>
+                                        </td>
+                                        <td style="text-align:center;"><?= (int)$em['semana_1_dias'] ?>d</td>
+                                        <td style="text-align:center;"><?= (int)$em['semana_2_dias'] ?>d</td>
+                                        <td style="text-align:center;"><?= (int)$em['semana_3_dias'] ?>d</td>
+                                        <td style="text-align:center;"><?= (int)$em['semana_4_dias'] ?>d</td>
+                                        <td style="text-align:center;font-weight:900;color:#3898FF;"><?= (int)$em['total_dias_asistidos'] ?> días</td>
+                                        <td style="text-align:center;font-weight:800;"><?= (int)$em['horas_totales'] ?> h</td>
+                                        <td style="font-weight:700;color:#FBBF24;">S/ <?= number_format((float)$em['importe_hora'], 2) ?></td>
+                                        <td style="font-weight:900;color:#34D399;">S/ <?= number_format((float)$em['importe_mensual'], 2) ?></td>
+                                        <td>
+                                            <form action="acciones.php" method="POST">
+                                                <input type="hidden" name="accion" value="eliminar_empleado_control">
+                                                <input type="hidden" name="empleado_id" value="<?= (int)$em['id'] ?>">
+                                                <input type="hidden" name="tab_retorno" value="empleados">
+                                                <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -1643,10 +2555,51 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_error']);
             const pane = document.getElementById('tab-' + tabName);
             if (pane) pane.classList.add('active');
 
-            const btns = document.querySelectorAll('.sidebar-nav .nav-btn');
-            const map = ['dashboard', 'clientes', 'finanzas', 'campanas', 'videos', 'imagenes', 'solicitudes'];
-            const idx = map.indexOf(tabName);
-            if (idx >= 0 && btns[idx]) btns[idx].classList.add('active');
+            const activeBtn = document.querySelector('.sidebar-nav .nav-btn[data-tab="' + tabName + '"]');
+            if (activeBtn) activeBtn.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function autocompletarDesdeCatalogo(selectEl, descId, precioId, cuentaId) {
+            const opt = selectEl.options[selectEl.selectedIndex];
+            if (!opt) return;
+            const desc = opt.getAttribute('data-desc') || '';
+            const precio = opt.getAttribute('data-precio') || '0';
+            const cuenta = opt.getAttribute('data-cuenta') || 'BCP';
+            const dEl = document.getElementById(descId);
+            const pEl = document.getElementById(precioId);
+            const cEl = document.getElementById(cuentaId);
+            if (dEl) dEl.value = desc;
+            if (pEl) pEl.value = parseFloat(precio).toFixed(2);
+            if (cEl && cuenta) cEl.value = cuenta;
+        }
+
+        function filtrarTablaProyectos(estado) {
+            document.querySelectorAll('#tablaSeguimientoProyectos tbody tr').forEach(tr => {
+                if (estado === 'TODOS' || tr.getAttribute('data-estado-proy') === estado) {
+                    tr.style.display = '';
+                } else {
+                    tr.style.display = 'none';
+                }
+            });
+        }
+
+        function filtrarTablaActividades(tipo) {
+            document.querySelectorAll('#tablaRegistroActividades tbody tr').forEach(tr => {
+                if (tipo === 'TODOS' || tr.getAttribute('data-tipo-act') === tipo) {
+                    tr.style.display = '';
+                } else {
+                    tr.style.display = 'none';
+                }
+            });
+        }
+
+        function actualizarPrefijoComprobante(tipo) {
+            const input = document.getElementById('docNroInput');
+            if (!input) return;
+            if (tipo === 'FACTURA') input.placeholder = 'Ej. FC-000-002';
+            else if (tipo === 'COTIZACION') input.placeholder = 'Ej. CT-000-002';
+            else input.placeholder = 'Ej. BV-000-002';
         }
 
         function abrirModalAbono(id, nombre, saldo) {

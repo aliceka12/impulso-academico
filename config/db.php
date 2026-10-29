@@ -37,6 +37,7 @@ function getPDO(): PDO {
         ]);
 
         inicializarEsquemaYDatos($pdo);
+        inicializarModulosExcelYFacturacion($pdo);
         return $pdo;
     } catch (PDOException $e) {
         die("<div style='font-family:Segoe UI,sans-serif;max-width:650px;margin:60px auto;padding:30px;border-radius:16px;background:#fff;border:2px solid #0074F0;box-shadow:0 10px 30px rgba(4,33,82,0.12);'>"
@@ -549,4 +550,293 @@ function obtenerConfiguracion(PDO $pdo): array {
         $cfg[$r['clave']] = $r['valor'];
     }
     return $cfg;
+}
+
+/**
+ * Inicializa automáticamente las tablas y datos del sistema de control Excel:
+ * - Catálogo de Actividades (C0101 - C0107) y Cuentas Corrientes (BCP, Interbank, Banco de la Nación, CMR, BBVA)
+ * - Proyectos (Pendientes, Entregas, Cancelación, Supervisión de Avances de Investigación)
+ * - Control de Ingreso/Salida de Actividades, Gastos Financieros y Proveedores (Herramientas)
+ * - Documentación: Boletas, Facturas y Cotizaciones (con RUC actualizable)
+ * - Empleados: Asistencia Investigación / Comercial y Cálculo de Horas e Importe Mensual
+ */
+function inicializarModulosExcelYFacturacion(PDO $pdo): void {
+    // Asegurar claves de RUC y facturación en configuracion_web
+    $stmtCfg = $pdo->prepare("INSERT IGNORE INTO configuracion_web (clave, valor, descripcion) VALUES (?, ?, ?)");
+    $stmtCfg->execute(['ruc_empresa', 'EN TRÁMITE (Editable al obtener RUC)', 'Número de RUC para Boletas, Facturas y Cotizaciones']);
+    $stmtCfg->execute(['razon_social_facturacion', 'IMPULSO ACADÉMICO - SISTEMA DE GESTIÓN Y APOYO A LA INVESTIGACIÓN', 'Razón social para comprobantes']);
+    $stmtCfg->execute(['direccion_fiscal', 'Lima – Perú', 'Dirección fiscal en comprobantes']);
+
+    $check = $pdo->query("SHOW TABLES LIKE 'comprobantes_pago'");
+    if ($check->rowCount() > 0) {
+        return;
+    }
+
+    // 1. Tabla Catálogo de Actividades (Hoja: Listas de Actividades)
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS catalogo_actividades (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            codigo VARCHAR(20) NOT NULL UNIQUE,
+            descripcion VARCHAR(160) NOT NULL,
+            ingreso_base DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            cuenta_corriente VARCHAR(80) DEFAULT 'BCP',
+            estado ENUM('ACTIVO','INACTIVO') DEFAULT 'ACTIVO',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+
+    $actividades = [
+        ['C0101', 'Tesis', 2500.00, 'BCP'],
+        ['C0102', 'Plan de tesis', 700.00, 'Interbank'],
+        ['C0103', 'Artículo', 600.00, 'Banco de la Nación'],
+        ['C0104', 'TSP (Trabajo de Suficiencia Profesional)', 2000.00, 'CMR'],
+        ['C0105', 'Metodología de Investigación', 700.00, 'BBVA'],
+        ['C0106', 'Proyecto de Inversión', 1800.00, 'BCP'],
+        ['C0107', 'RSL (Revisión Sistemática de Literatura)', 700.00, 'Interbank']
+    ];
+    $stmtAct = $pdo->prepare("INSERT IGNORE INTO catalogo_actividades (codigo, descripcion, ingreso_base, cuenta_corriente) VALUES (?, ?, ?, ?)");
+    foreach ($actividades as $a) {
+        $stmtAct->execute($a);
+    }
+
+    // 2. Tabla Seguimiento de Proyectos: Pendientes, Entregas y Cancelación (Hojas: Clientes, Pendientes, Entregas, Cancelacion)
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS seguimiento_proyectos (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            estado_proyecto ENUM('PENDIENTE','ENTREGADO','CANCELADO') NOT NULL DEFAULT 'PENDIENTE',
+            fecha DATE NOT NULL,
+            universidad VARCHAR(180) NOT NULL,
+            cliente_nombre VARCHAR(160) NOT NULL,
+            celular VARCHAR(40) DEFAULT '',
+            area_carrera VARCHAR(120) DEFAULT 'Contabilidad',
+            area_academica VARCHAR(80) DEFAULT 'Bachiller',
+            lista_avance VARCHAR(140) NOT NULL,
+            descripcion_actividad VARCHAR(255) NOT NULL,
+            envio_evidencias VARCHAR(120) DEFAULT 'Sí, en fecha',
+            hora_inicio VARCHAR(20) DEFAULT '09:00',
+            hora_fin VARCHAR(20) DEFAULT '13:00',
+            supervision_investigacion VARCHAR(140) DEFAULT 'Aprobado por supervisión',
+            justificacion_demora VARCHAR(255) DEFAULT 'Ninguna (Dentro de plazo)',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+
+    $proyectosSeed = [
+        [
+            'PENDIENTE', date('Y-m-d'), 'Pontificia Universidad Católica del Perú (PUCP)',
+            'Norma Collantes', '953697434', 'Contabilidad', 'Bachiller',
+            'Realidad problemática', 'Desarrollo de planteamiento del problema y formulación de objetivos',
+            'Sí, pero es fuera de fecha', '09:00', '13:30',
+            'En supervisión de jefatura', 'Ajuste de fuentes bibliográficas recientes'
+        ],
+        [
+            'PENDIENTE', date('Y-m-d', strtotime('-2 days')), 'Universidad Nacional Mayor de San Marcos (UNMSM)',
+            'Carlos Eduardo Mendoza Ríos', '987112233', 'Ingeniería', 'Titulado',
+            'Matriz de Consistencia', 'Alineación de variables, dimensiones e indicadores con instrumentos',
+            'Sí, en fecha', '10:00', '14:00',
+            'Revisado y validado', 'Sin demora'
+        ],
+        [
+            'ENTREGADO', date('Y-m-d', strtotime('-5 days')), 'Universidad César Vallejo (UCV)',
+            'María Fernanda Quispe Paredes', '991223344', 'Administración', 'Magíster',
+            'Resultados', 'Entrega de capítulo de resultados, discusión, referencias y anexos finales',
+            'Sí, en fecha', '08:30', '12:30',
+            'Aprobado al 100%', 'Entregado puntualmente según cronograma'
+        ],
+        [
+            'ENTREGADO', date('Y-m-d', strtotime('-7 days')), 'Universidad de San Martín de Porres (USMP)',
+            'Jorge Luis Vargas Huamán', '944556677', 'Medicina', 'Bachiller',
+            'Metodología', 'Diseño metodológico, población, muestra y operacionalización de variables',
+            'Sí, en fecha', '14:00', '18:00',
+            'Aprobado por asesor', 'Sin demora'
+        ],
+        [
+            'CANCELADO', date('Y-m-d', strtotime('-15 days')), 'Universidad Tecnológica del Perú (UTP)',
+            'Luis Alberto Salazar', '966112299', 'Derecho', 'Estudiante',
+            'Antecedentes', 'Búsqueda preliminar de antecedentes nacionales',
+            'No aplica', '09:00', '10:00',
+            'Postergado por el cliente', 'Cliente postergó ciclo académico en su universidad'
+        ]
+    ];
+    $stmtProy = $pdo->prepare("
+        INSERT INTO seguimiento_proyectos (
+            estado_proyecto, fecha, universidad, cliente_nombre, celular, area_carrera, area_academica,
+            lista_avance, descripcion_actividad, envio_evidencias, hora_inicio, hora_fin,
+            supervision_investigacion, justificacion_demora
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+    foreach ($proyectosSeed as $p) {
+        $stmtProy->execute($p);
+    }
+
+    // 3. Tabla Registro de Actividades Financieras y Proveedores (Hojas: Ingreso de Actividades, Salida de Actividades, Gastos Financieros, Proveedores)
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS registro_actividades_fin (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            tipo_registro ENUM('INGRESO_ACTIVIDAD','SALIDA_ACTIVIDAD','GASTO_FINANCIERO','PROVEEDOR') NOT NULL DEFAULT 'INGRESO_ACTIVIDAD',
+            nro_lista VARCHAR(30) NOT NULL,
+            fecha DATE NOT NULL,
+            area_carrera VARCHAR(120) DEFAULT 'Contabilidad',
+            area_academica VARCHAR(80) DEFAULT 'Bachiller',
+            codigo_actividad VARCHAR(20) DEFAULT 'C0101',
+            descripcion VARCHAR(200) NOT NULL,
+            ingreso_unitario DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            cantidad INT NOT NULL DEFAULT 1,
+            monto_total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            gasto_herramientas DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            proveedor_contacto VARCHAR(80) DEFAULT '',
+            cuenta_pago VARCHAR(80) DEFAULT 'BCP',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+
+    $regSeed = [
+        ['INGRESO_ACTIVIDAD', 'FV-000-001', date('Y-m-d', strtotime('-12 days')), 'Contabilidad', 'Bachiller', 'C0101', 'Tesis', 2500.00, 1, 2500.00, 0.00, 'Norma Collantes (953697434)', 'BCP'],
+        ['INGRESO_ACTIVIDAD', 'FV-000-002', date('Y-m-d', strtotime('-10 days')), 'Administración', 'Magíster', 'C0102', 'Plan de tesis', 700.00, 1, 700.00, 0.00, 'María Quispe', 'Interbank'],
+        ['INGRESO_ACTIVIDAD', 'FV-000-003', date('Y-m-d', strtotime('-9 days')), 'Educación', 'Titulado', 'C0103', 'Artículo', 600.00, 1, 600.00, 0.00, 'Jorge Vargas', 'Banco de la Nación'],
+        ['INGRESO_ACTIVIDAD', 'FV-000-004', date('Y-m-d', strtotime('-7 days')), 'Derecho', 'Titulado', 'C0104', 'TSP', 2000.00, 1, 2000.00, 0.00, 'Andrea Torres', 'CMR'],
+        ['INGRESO_ACTIVIDAD', 'FV-000-005', date('Y-m-d', strtotime('-5 days')), 'Psicología', 'Bachiller', 'C0105', 'Metodología de Investigación', 700.00, 1, 700.00, 0.00, 'Diego Rojas', 'BBVA'],
+        ['INGRESO_ACTIVIDAD', 'FV-000-006', date('Y-m-d', strtotime('-3 days')), 'Economía y Negocios Internacionales', 'Titulado', 'C0106', 'Proyecto de Inversión', 1800.00, 1, 1800.00, 0.00, 'Carlos Mendoza', 'BCP'],
+        ['INGRESO_ACTIVIDAD', 'FV-000-007', date('Y-m-d', strtotime('-1 days')), 'Medicina', 'Magíster', 'C0107', 'RSL', 700.00, 1, 700.00, 0.00, 'Valeria Gómez', 'Interbank'],
+        ['SALIDA_ACTIVIDAD', 'SA-000-001', date('Y-m-d', strtotime('-4 days')), 'Contabilidad', 'Bachiller', 'C0101', 'Entrega y liquidación de avance de Tesis', 1250.00, 1, 1250.00, 0.00, 'Eugenia (Investigación)', 'BCP'],
+        ['GASTO_FINANCIERO', 'FC-000-001', date('Y-m-d', strtotime('-6 days')), 'General', 'Todos', 'C0101', 'Licencias de Investigación y Herramientas IA', 0.00, 1, 150.00, 150.00, '953697434', 'Interbank'],
+        ['PROVEEDOR', 'PR-000-001', date('Y-m-d', strtotime('-6 days')), 'General', 'Investigación', 'C0101', 'ChatGPT Plus / Herramientas de Investigación', 150.00, 1, 150.00, 150.00, '953697434', 'Interbank'],
+        ['PROVEEDOR', 'PR-000-002', date('Y-m-d', strtotime('-8 days')), 'General', 'Originalidad', 'C0105', 'Licencia Turnitin + SPSS Estadístico', 230.00, 1, 230.00, 230.00, '900439160', 'BCP']
+    ];
+    $stmtReg = $pdo->prepare("
+        INSERT INTO registro_actividades_fin (
+            tipo_registro, nro_lista, fecha, area_carrera, area_academica, codigo_actividad,
+            descripcion, ingreso_unitario, cantidad, monto_total, gasto_herramientas, proveedor_contacto, cuenta_pago
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+    foreach ($regSeed as $r) {
+        $stmtReg->execute($r);
+    }
+
+    // 4. Tabla Documentación: Emisión de Boletas, Facturas y Cotizaciones (Hojas: Factura, Cotizacion)
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS comprobantes_pago (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            tipo_doc ENUM('BOLETA','FACTURA','COTIZACION') NOT NULL DEFAULT 'BOLETA',
+            nro_documento VARCHAR(35) NOT NULL,
+            fecha_emision DATE NOT NULL,
+            cliente_nombre VARCHAR(160) NOT NULL,
+            cliente_doc_tipo VARCHAR(20) DEFAULT 'DNI',
+            cliente_doc_numero VARCHAR(30) DEFAULT '',
+            cliente_celular VARCHAR(30) DEFAULT '',
+            universidad VARCHAR(160) DEFAULT '',
+            area_carrera VARCHAR(120) DEFAULT 'Contabilidad',
+            area_academica VARCHAR(80) DEFAULT 'Bachiller',
+            codigo_actividad VARCHAR(20) DEFAULT 'C0101',
+            descripcion VARCHAR(220) NOT NULL,
+            cantidad INT NOT NULL DEFAULT 1,
+            precio_unitario DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            subtotal DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            igv DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            importe_total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            cuenta_pago VARCHAR(80) DEFAULT 'BCP',
+            estado_doc ENUM('EMITIDO','PAGADO','PENDIENTE','ANULADO') DEFAULT 'PAGADO',
+            observaciones VARCHAR(255) DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+
+    $compSeed = [
+        [
+            'BOLETA', 'BV-000-001', date('Y-m-d', strtotime('-5 days')),
+            'Norma Collantes', 'DNI', '45892103', '953697434',
+            'Pontificia Universidad Católica del Perú (PUCP)', 'Contabilidad', 'Bachiller',
+            'C0101', 'Tesis - Asesoría y Acompañamiento Académico Integral',
+            1, 2500.00, 2500.00, 0.00, 2500.00, 'BCP', 'PAGADO',
+            'Coordinación interna sin pasarela web. Abono en cuenta corriente BCP.'
+        ],
+        [
+            'FACTURA', 'FC-000-001', date('Y-m-d', strtotime('-3 days')),
+            'Carlos Eduardo Mendoza Ríos', 'RUC', '10728491025', '987112233',
+            'Universidad Nacional Mayor de San Marcos (UNMSM)', 'Ingeniería', 'Titulado',
+            'C0106', 'Proyecto de Inversión y Desarrollo Capitular',
+            1, 1800.00, 1525.42, 274.58, 1800.00, 'Interbank', 'PAGADO',
+            'Factura emitida por asesoría metodológica.'
+        ],
+        [
+            'COTIZACION', 'CT-000-001', date('Y-m-d'),
+            'Valeria Gómez Sánchez', 'DNI', '74102938', '982341567',
+            'Universidad Peruana de Ciencias Aplicadas (UPC)', 'Administración y Negocios Internacionales', 'Bachiller',
+            'C0102', 'Plan de tesis + Matriz de Consistencia y Operacionalización',
+            1, 700.00, 700.00, 0.00, 700.00, 'BBVA', 'EMITIDO',
+            'Cotización válida por 15 días. Facilidades de pago en 2 cuotas.'
+        ]
+    ];
+    $stmtComp = $pdo->prepare("
+        INSERT INTO comprobantes_pago (
+            tipo_doc, nro_documento, fecha_emision, cliente_nombre, cliente_doc_tipo, cliente_doc_numero,
+            cliente_celular, universidad, area_carrera, area_academica, codigo_actividad, descripcion,
+            cantidad, precio_unitario, subtotal, igv, importe_total, cuenta_pago, estado_doc, observaciones
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+    foreach ($compSeed as $cp) {
+        $stmtComp->execute($cp);
+    }
+
+    // 5. Tabla Empleados y Control de Asistencia / Supervisión (Hojas: Empleados, Asis. Investigacion, Asis. Comercial, Asistencia)
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS empleados_control (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nombre_trabajador VARCHAR(120) NOT NULL,
+            area_trabajador ENUM('INVESTIGACION','COMERCIAL') NOT NULL DEFAULT 'INVESTIGACION',
+            celular VARCHAR(30) DEFAULT '',
+            universidad_asignada VARCHAR(160) DEFAULT 'Pontificia Universidad Católica del Perú (PUCP)',
+            descripcion_actividad VARCHAR(220) DEFAULT 'Elaboración y revisión de avances de tesis',
+            envio_evidencias VARCHAR(80) DEFAULT 'Sí, en fecha',
+            hora_inicio VARCHAR(20) DEFAULT '08:00',
+            hora_fin VARCHAR(20) DEFAULT '16:00',
+            supervision_jefatura VARCHAR(120) DEFAULT 'Conformidad de Jefatura',
+            justificacion_demora VARCHAR(200) DEFAULT 'Ninguna',
+            semana_1_dias INT NOT NULL DEFAULT 5,
+            semana_2_dias INT NOT NULL DEFAULT 5,
+            semana_3_dias INT NOT NULL DEFAULT 5,
+            semana_4_dias INT NOT NULL DEFAULT 5,
+            total_dias_asistidos INT NOT NULL DEFAULT 20,
+            horas_totales INT NOT NULL DEFAULT 160,
+            importe_hora DECIMAL(10,2) NOT NULL DEFAULT 11.25,
+            importe_mensual DECIMAL(10,2) NOT NULL DEFAULT 1800.00,
+            fecha_registro DATE NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+
+    $empSeed = [
+        [
+            'Eugenia', 'INVESTIGACION', '953697434',
+            'Pontificia Universidad Católica del Perú (PUCP)',
+            'Desarrollo de Realidad Problemática, Marco Teórico y Matriz de Consistencia',
+            'Sí, en fecha', '08:00', '16:00', 'Aprobado por Jefatura de Investigación', 'Sin demora',
+            5, 5, 5, 5, 20, 160, 11.25, 1800.00, date('Y-m-d')
+        ],
+        [
+            'Alice', 'INVESTIGACION', '900439160',
+            'Universidad Nacional Mayor de San Marcos (UNMSM)',
+            'Supervisión Metodológica, Análisis Estadístico y Reducción Turnitin',
+            'Sí, en fecha', '08:00', '16:00', 'Aprobado por Jefatura de Investigación', 'Sin demora',
+            5, 5, 5, 5, 20, 160, 11.25, 1800.00, date('Y-m-d')
+        ],
+        [
+            'Alice', 'COMERCIAL', '900439160',
+            'Atención Multidisciplinaria (Pregrado y Posgrado)',
+            'Seguimiento de Cotizaciones, Coordinación de Pagos Internos y Entregas',
+            'Sí, en fecha', '09:00', '17:00', 'Aprobado por Jefatura Comercial', 'Sin demora',
+            5, 5, 5, 5, 20, 160, 9.38, 1500.00, date('Y-m-d')
+        ]
+    ];
+    $stmtEmp = $pdo->prepare("
+        INSERT INTO empleados_control (
+            nombre_trabajador, area_trabajador, celular, universidad_asignada, descripcion_actividad,
+            envio_evidencias, hora_inicio, hora_fin, supervision_jefatura, justificacion_demora,
+            semana_1_dias, semana_2_dias, semana_3_dias, semana_4_dias, total_dias_asistidos,
+            horas_totales, importe_hora, importe_mensual, fecha_registro
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+    foreach ($empSeed as $em) {
+        $stmtEmp->execute($em);
+    }
 }
