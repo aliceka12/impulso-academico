@@ -567,6 +567,18 @@ function inicializarModulosExcelYFacturacion(PDO $pdo): void {
     $stmtCfg->execute(['razon_social_facturacion', 'IMPULSO ACADÉMICO - SISTEMA DE GESTIÓN Y APOYO A LA INVESTIGACIÓN', 'Razón social para comprobantes']);
     $stmtCfg->execute(['direccion_fiscal', 'Lima – Perú', 'Dirección fiscal en comprobantes']);
 
+    // Asegurar columnas de administración de usuarios y contraseñas en usuarios_admin
+    $colCheck = $pdo->query("SHOW COLUMNS FROM usuarios_admin LIKE 'password_visible'");
+    if ($colCheck->rowCount() === 0) {
+        $pdo->exec("ALTER TABLE usuarios_admin ADD COLUMN password_visible VARCHAR(120) DEFAULT 'impulso2026' AFTER password_hash");
+        $pdo->exec("ALTER TABLE usuarios_admin ADD COLUMN estado ENUM('ACTIVO','INACTIVO') DEFAULT 'ACTIVO' AFTER cargo");
+        $pdo->exec("UPDATE usuarios_admin SET password_visible = 'impulso2026', estado = 'ACTIVO' WHERE usuario = 'admin'");
+
+        $stmtInsUsr = $pdo->prepare("INSERT IGNORE INTO usuarios_admin (usuario, password_hash, password_visible, nombre, cargo, estado) VALUES (?, ?, ?, ?, ?, 'ACTIVO')");
+        $stmtInsUsr->execute(['alice', password_hash('alice2026', PASSWORD_DEFAULT), 'alice2026', 'Alice (Dirección / Comercial)', 'Dirección Comercial']);
+        $stmtInsUsr->execute(['eugenia', password_hash('eugenia2026', PASSWORD_DEFAULT), 'eugenia2026', 'Eugenia (Jefatura Investigación)', 'Investigación Académica']);
+    }
+
     $check = $pdo->query("SHOW TABLES LIKE 'comprobantes_pago'");
     if ($check->rowCount() > 0) {
         return;

@@ -639,6 +639,105 @@ try {
             $pdo->prepare("DELETE FROM empleados_control WHERE id = ?")->execute([$id]);
             $_SESSION['flash_msg'] = "Registro de empleado eliminado.";
             break;
+
+        // ====================================================================
+        // 11. ADMINISTRACIÓN DE USUARIOS Y CONTRASEÑAS DEL PANEL
+        // ====================================================================
+        case 'crear_usuario_admin':
+            $usuario = strtolower(preg_replace('/[^a-zA-Z0-9_.-]/', '', trim($_POST['usuario'] ?? '')));
+            $nombre = trim($_POST['nombre'] ?? '');
+            $cargo = trim($_POST['cargo'] ?? 'Asesoría Académica');
+            $password = trim($_POST['password'] ?? '');
+            $estado = ($_POST['estado'] ?? 'ACTIVO') === 'INACTIVO' ? 'INACTIVO' : 'ACTIVO';
+
+            if ($usuario === '' || $password === '' || $nombre === '') {
+                $_SESSION['flash_error'] = "Por favor completa Nombre, Usuario y Contraseña.";
+                break;
+            }
+
+            $stmtEx = $pdo->prepare("SELECT COUNT(*) FROM usuarios_admin WHERE usuario = ?");
+            $stmtEx->execute([$usuario]);
+            if ((int)$stmtEx->fetchColumn() > 0) {
+                $_SESSION['flash_error'] = "El nombre de usuario '{$usuario}' ya existe. Elige otro.";
+                break;
+            }
+
+            $passHash = password_hash($password, PASSWORD_DEFAULT);
+            $stmtIns = $pdo->prepare("
+                INSERT INTO usuarios_admin (usuario, password_hash, password_visible, nombre, cargo, estado)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+            $stmtIns->execute([$usuario, $passHash, $password, $nombre, $cargo, $estado]);
+            $_SESSION['flash_msg'] = "Nuevo usuario '{$usuario}' ({$nombre}) creado exitosamente.";
+            break;
+
+        case 'editar_usuario_admin':
+            $id = (int)($_POST['usuario_id'] ?? 0);
+            $usuario = strtolower(preg_replace('/[^a-zA-Z0-9_.-]/', '', trim($_POST['usuario'] ?? '')));
+            $nombre = trim($_POST['nombre'] ?? '');
+            $cargo = trim($_POST['cargo'] ?? 'Dirección General');
+            $nuevaPassword = trim($_POST['nueva_password'] ?? '');
+            $estado = ($_POST['estado'] ?? 'ACTIVO') === 'INACTIVO' ? 'INACTIVO' : 'ACTIVO';
+
+            if ($id <= 0 || $usuario === '' || $nombre === '') {
+                $_SESSION['flash_error'] = "Datos de usuario incompletos.";
+                break;
+            }
+
+            if ($nuevaPassword !== '') {
+                $passHash = password_hash($nuevaPassword, PASSWORD_DEFAULT);
+                $stmtUp = $pdo->prepare("
+                    UPDATE usuarios_admin
+                    SET usuario = ?, nombre = ?, cargo = ?, estado = ?, password_hash = ?, password_visible = ?
+                    WHERE id = ?
+                ");
+                $stmtUp->execute([$usuario, $nombre, $cargo, $estado, $passHash, $nuevaPassword, $id]);
+            } else {
+                $stmtUp = $pdo->prepare("
+                    UPDATE usuarios_admin
+                    SET usuario = ?, nombre = ?, cargo = ?, estado = ?
+                    WHERE id = ?
+                ");
+                $stmtUp->execute([$usuario, $nombre, $cargo, $estado, $id]);
+            }
+
+            if (!empty($_SESSION['admin_id']) && (int)$_SESSION['admin_id'] === $id) {
+                $_SESSION['admin_usuario'] = $usuario;
+                $_SESSION['admin_nombre'] = $nombre;
+            }
+
+            $_SESSION['flash_msg'] = "Usuario '{$usuario}' y su contraseña actualizados correctamente.";
+            break;
+
+        case 'toggle_estado_usuario':
+            $id = (int)($_POST['usuario_id'] ?? 0);
+            $totalActivos = (int)$pdo->query("SELECT COUNT(*) FROM usuarios_admin WHERE estado = 'ACTIVO'")->fetchColumn();
+            $stmtCur = $pdo->prepare("SELECT estado, usuario FROM usuarios_admin WHERE id = ?");
+            $stmtCur->execute([$id]);
+            $cur = $stmtCur->fetch();
+            if ($cur) {
+                if ($cur['estado'] === 'ACTIVO' && $totalActivos <= 1) {
+                    $_SESSION['flash_error'] = "No puedes desactivar al único usuario administrador activo del sistema.";
+                } else {
+                    $nuevoEstado = $cur['estado'] === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
+                    $pdo->prepare("UPDATE usuarios_admin SET estado = ? WHERE id = ?")->execute([$nuevoEstado, $id]);
+                    $_SESSION['flash_msg'] = "Estado del usuario '{$cur['usuario']}' cambiado a {$nuevoEstado}.";
+                }
+            }
+            break;
+
+        case 'eliminar_usuario_admin':
+            $id = (int)($_POST['usuario_id'] ?? 0);
+            $totalUsers = (int)$pdo->query("SELECT COUNT(*) FROM usuarios_admin")->fetchColumn();
+            if ($totalUsers <= 1) {
+                $_SESSION['flash_error'] = "No puedes eliminar el único usuario administrador del sistema.";
+            } elseif (!empty($_SESSION['admin_id']) && (int)$_SESSION['admin_id'] === $id) {
+                $_SESSION['flash_error'] = "No puedes eliminar el usuario con el que tienes la sesión abierta actualmente.";
+            } else {
+                $pdo->prepare("DELETE FROM usuarios_admin WHERE id = ?")->execute([$id]);
+                $_SESSION['flash_msg'] = "Usuario eliminado del sistema.";
+            }
+            break;
     }
 } catch (Throwable $e) {
     $_SESSION['flash_error'] = "Error al procesar la acción: " . $e->getMessage();

@@ -33,6 +33,7 @@ $seguimientoProyectos = $pdo->query("SELECT * FROM seguimiento_proyectos ORDER B
 $registroActividadesFin = $pdo->query("SELECT * FROM registro_actividades_fin ORDER BY id DESC")->fetchAll();
 $comprobantesPago = $pdo->query("SELECT * FROM comprobantes_pago ORDER BY id DESC")->fetchAll();
 $empleadosControl = $pdo->query("SELECT * FROM empleados_control ORDER BY id ASC")->fetchAll();
+$usuariosAdmin = $pdo->query("SELECT * FROM usuarios_admin ORDER BY id ASC")->fetchAll();
 
 $conteoProyectos = ['PENDIENTE' => 0, 'ENTREGADO' => 0, 'CANCELADO' => 0];
 foreach ($seguimientoProyectos as $sp) {
@@ -514,6 +515,10 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_error']);
                 <?php if ($solicitudesNuevas > 0): ?>
                 <span class="badge-count" style="background:#EF4444;"><?= $solicitudesNuevas ?></span>
                 <?php endif; ?>
+            </button>
+            <button class="nav-btn <?= $activeTab === 'usuarios' ? 'active' : '' ?>" data-tab="usuarios" onclick="switchTab('usuarios')">
+                <span class="left"><i class="fa-solid fa-user-lock"></i> Usuarios y Contraseñas</span>
+                <span class="badge-count"><?= count($usuariosAdmin) ?></span>
             </button>
         </nav>
 
@@ -2383,6 +2388,165 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_error']);
                     </div>
                 </div>
             </section>
+
+            <!-- =================================================================
+                 TAB 12: ADMINISTRACIÓN DE USUARIOS Y CONTRASEÑAS DEL PANEL
+                 ================================================================= -->
+            <section id="tab-usuarios" class="tab-pane <?= $activeTab === 'usuarios' ? 'active' : '' ?>">
+                <!-- Tarjeta 1: Crear Nuevo Usuario y Contraseña -->
+                <div class="panel-card" style="border-color:#3898FF;">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-user-shield" style="color:#FBBF24;"></i> Crear Nuevo Usuario y Contraseña de Acceso al Panel</h3>
+                        <span class="status-pill pill-blue"><?= count($usuariosAdmin) ?> usuarios registrados</span>
+                    </div>
+                    <div class="panel-body">
+                        <form action="acciones.php" method="POST">
+                            <input type="hidden" name="accion" value="crear_usuario_admin">
+                            <input type="hidden" name="tab_retorno" value="usuarios">
+                            <div class="form-grid-3">
+                                <div class="form-group">
+                                    <label>Nombre Completo del Usuario / Trabajador *</label>
+                                    <input type="text" name="nombre" class="form-control" placeholder="Ej. Dra. Norma Collantes / Lic. Marcos" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Usuario de Acceso (Sin espacios) *</label>
+                                    <input type="text" name="usuario" class="form-control" placeholder="Ej. norma, marcos, recepcion" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Contraseña de Acceso *</label>
+                                    <div style="display:flex;gap:6px;">
+                                        <div style="position:relative;flex:1;">
+                                            <input type="text" name="password" id="nuevoUsrPassword" class="form-control" placeholder="Escribe la contraseña" required>
+                                        </div>
+                                        <button type="button" class="btn btn-navy btn-sm" onclick="generarClaveInput('nuevoUsrPassword')" title="Generar clave sugerida">
+                                            <i class="fa-solid fa-wand-magic-sparkles"></i> Sugerir
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Cargo / Rol en Impulso Académico</label>
+                                    <select name="cargo" class="form-control">
+                                        <option value="Dirección General">Dirección General (Control Total)</option>
+                                        <option value="Dirección Comercial">Dirección Comercial</option>
+                                        <option value="Investigación Académica">Investigación Académica</option>
+                                        <option value="Contabilidad y Finanzas">Contabilidad y Finanzas</option>
+                                        <option value="Atención y Coordinación">Atención y Coordinación</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Estado Inicial</label>
+                                    <select name="estado" class="form-control">
+                                        <option value="ACTIVO">ACTIVO (Puede ingresar al Panel)</option>
+                                        <option value="INACTIVO">INACTIVO (Acceso bloqueado)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="display:flex;align-items:flex-end;">
+                                    <button type="submit" class="btn btn-success" style="width:100%;padding:11px;">
+                                        <i class="fa-solid fa-user-plus"></i> Registrar Usuario y Contraseña
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 2: Tabla de Usuarios y Contraseñas Registradas -->
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-key" style="color:#34D399;"></i> Usuarios Registrados y Administración de Contraseñas</h3>
+                        <small style="color:#9EC3F0;">Haz clic en el ojito <i class="fa-solid fa-eye"></i> para ver la contraseña actual o en <strong>Editar / Cambiar Clave</strong> para modificarla</small>
+                    </div>
+                    <div class="panel-body" style="padding:0;">
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre y Cargo</th>
+                                        <th>Usuario de Login</th>
+                                        <th>Contraseña Actual</th>
+                                        <th>Estado</th>
+                                        <th>Fecha Registro</th>
+                                        <th>Acciones (Cambiar Clave / Estado)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($usuariosAdmin as $ua):
+                                        $claveVis = $ua['password_visible'] ?? 'impulso2026';
+                                        $estadoUsr = $ua['estado'] ?? 'ACTIVO';
+                                    ?>
+                                    <tr>
+                                        <td>#<?= (int)$ua['id'] ?></td>
+                                        <td>
+                                            <strong style="font-size:0.94rem;color:#fff;"><?= htmlspecialchars($ua['nombre']) ?></strong>
+                                            <div style="font-size:0.75rem;color:#85C1FF;"><?= htmlspecialchars($ua['cargo'] ?? 'Dirección General') ?></div>
+                                        </td>
+                                        <td>
+                                            <span class="status-pill pill-blue" style="font-size:0.84rem;">
+                                                <i class="fa-solid fa-user"></i> <?= htmlspecialchars($ua['usuario']) ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(2,18,44,0.85);padding:6px 12px;border-radius:10px;border:1px solid var(--ia-border);">
+                                                <code id="pwdSpan_<?= (int)$ua['id'] ?>" data-real="<?= htmlspecialchars($claveVis) ?>" data-shown="0" style="color:#FBBF24;font-weight:900;font-size:0.88rem;letter-spacing:1px;">••••••••</code>
+                                                <button type="button" onclick="toggleVerPasswordFila(<?= (int)$ua['id'] ?>)" class="btn btn-sm" style="background:rgba(56,152,255,0.2);color:#85C1FF;padding:4px 8px;" title="Mostrar / Ocultar contraseña">
+                                                    <i class="fa-solid fa-eye" id="pwdIcon_<?= (int)$ua['id'] ?>"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="status-pill <?= $estadoUsr === 'ACTIVO' ? 'pill-success' : 'pill-danger' ?>">
+                                                <?= htmlspecialchars($estadoUsr) ?>
+                                            </span>
+                                        </td>
+                                        <td style="font-size:0.8rem;color:#94A3B8;">
+                                            <?= !empty($ua['creado_en']) ? date('d/m/Y', strtotime($ua['creado_en'])) : date('d/m/Y') ?>
+                                        </td>
+                                        <td>
+                                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                                <button type="button"
+                                                        class="btn btn-sm"
+                                                        style="background:#FBBF24;color:#02122C;font-weight:900;"
+                                                        onclick='abrirModalEditarUsuario(<?= json_encode([
+                                                            "id" => (int)$ua["id"],
+                                                            "usuario" => $ua["usuario"],
+                                                            "nombre" => $ua["nombre"],
+                                                            "cargo" => $ua["cargo"] ?? "Dirección General",
+                                                            "password_visible" => $claveVis,
+                                                            "estado" => $estadoUsr
+                                                        ], JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'>
+                                                    <i class="fa-solid fa-key"></i> Editar / Cambiar Clave
+                                                </button>
+
+                                                <form action="acciones.php" method="POST">
+                                                    <input type="hidden" name="accion" value="toggle_estado_usuario">
+                                                    <input type="hidden" name="usuario_id" value="<?= (int)$ua['id'] ?>">
+                                                    <input type="hidden" name="tab_retorno" value="usuarios">
+                                                    <button type="submit" class="btn btn-navy btn-sm" title="Activar o Desactivar acceso">
+                                                        <i class="fa-solid fa-power-off"></i> <?= $estadoUsr === 'ACTIVO' ? 'Desactivar' : 'Activar' ?>
+                                                    </button>
+                                                </form>
+
+                                                <?php if (count($usuariosAdmin) > 1): ?>
+                                                <form action="acciones.php" method="POST" onsubmit="return confirm('¿Eliminar este usuario de acceso?');">
+                                                    <input type="hidden" name="accion" value="eliminar_usuario_admin">
+                                                    <input type="hidden" name="usuario_id" value="<?= (int)$ua['id'] ?>">
+                                                    <input type="hidden" name="tab_retorno" value="usuarios">
+                                                    <button type="submit" class="btn btn-danger btn-sm" title="Eliminar usuario">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -2548,7 +2712,98 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_error']);
         </div>
     </div>
 
+    <!-- ==================== MODAL PARA EDITAR USUARIO Y CAMBIAR CONTRASEÑA ==================== -->
+    <div class="modal-backdrop" id="modalEditarUsuario">
+        <div class="modal-box" style="max-width:560px;">
+            <div class="panel-header">
+                <h3><i class="fa-solid fa-user-lock" style="color:#FBBF24;"></i> Editar Usuario y Cambiar Contraseña</h3>
+                <button type="button" class="btn btn-danger btn-sm" onclick="cerrarModal('modalEditarUsuario')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="panel-body">
+                <form action="acciones.php" method="POST">
+                    <input type="hidden" name="accion" value="editar_usuario_admin">
+                    <input type="hidden" name="usuario_id" id="editUsrId">
+                    <input type="hidden" name="tab_retorno" value="usuarios">
+
+                    <div class="form-grid-3" style="grid-template-columns:1fr 1fr;">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Nombre Completo *</label>
+                            <input type="text" name="nombre" id="editUsrNombre" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Usuario de Login *</label>
+                            <input type="text" name="usuario" id="editUsrUsuario" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Cargo / Rol</label>
+                            <select name="cargo" id="editUsrCargo" class="form-control">
+                                <option value="Dirección General">Dirección General</option>
+                                <option value="Dirección Comercial">Dirección Comercial</option>
+                                <option value="Investigación Académica">Investigación Académica</option>
+                                <option value="Contabilidad y Finanzas">Contabilidad y Finanzas</option>
+                                <option value="Atención y Coordinación">Atención y Coordinación</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label><i class="fa-solid fa-key" style="color:#FBBF24;"></i> Nueva Contraseña *</label>
+                            <div style="display:flex;gap:8px;">
+                                <input type="text" name="nueva_password" id="editUsrPassword" class="form-control" required>
+                                <button type="button" class="btn btn-navy btn-sm" onclick="generarClaveInput('editUsrPassword')">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> Sugerir
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Estado de la Cuenta</label>
+                            <select name="estado" id="editUsrEstado" class="form-control">
+                                <option value="ACTIVO">ACTIVO (Acceso habilitado)</option>
+                                <option value="INACTIVO">INACTIVO (Acceso deshabilitado)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:10px;">
+                        <button type="button" class="btn btn-danger" onclick="cerrarModal('modalEditarUsuario')">Cancelar</button>
+                        <button type="submit" class="btn" style="background:#FBBF24;color:#02122C;font-weight:900;">
+                            <i class="fa-solid fa-floppy-disk"></i> Guardar Usuario y Nueva Contraseña
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function toggleVerPasswordFila(id) {
+            const span = document.getElementById('pwdSpan_' + id);
+            const icon = document.getElementById('pwdIcon_' + id);
+            if (!span) return;
+            if (span.getAttribute('data-shown') === '1') {
+                span.textContent = '••••••••';
+                span.setAttribute('data-shown', '0');
+                if (icon) icon.className = 'fa-solid fa-eye';
+            } else {
+                span.textContent = span.getAttribute('data-real') || '';
+                span.setAttribute('data-shown', '1');
+                if (icon) icon.className = 'fa-solid fa-eye-slash';
+            }
+        }
+
+        function abrirModalEditarUsuario(usr) {
+            document.getElementById('editUsrId').value = usr.id;
+            document.getElementById('editUsrNombre').value = usr.nombre || '';
+            document.getElementById('editUsrUsuario').value = usr.usuario || '';
+            document.getElementById('editUsrCargo').value = usr.cargo || 'Dirección General';
+            document.getElementById('editUsrPassword').value = usr.password_visible || '';
+            document.getElementById('editUsrEstado').value = usr.estado || 'ACTIVO';
+            document.getElementById('modalEditarUsuario').classList.add('open');
+        }
+
+        function generarClaveInput(inputId) {
+            const inp = document.getElementById(inputId);
+            if (!inp) return;
+            const num = Math.floor(1000 + Math.random() * 9000);
+            inp.value = 'Impulso' + num;
+        }
         function switchTab(tabName) {
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.sidebar-nav .nav-btn').forEach(b => b.classList.remove('active'));

@@ -27,15 +27,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute([$user]);
     $admin = $stmt->fetch();
 
-    if ($admin && (password_verify($pass, $admin['password_hash']) || $pass === 'impulso2026')) {
+    if ($admin && ($admin['estado'] ?? 'ACTIVO') === 'INACTIVO') {
+        $error = 'Este usuario se encuentra desactivado. Contacta al administrador principal.';
+    } elseif ($admin && (password_verify($pass, $admin['password_hash']) || (!empty($admin['password_visible']) && $pass === $admin['password_visible']))) {
         $_SESSION['admin_logged_in'] = true;
         $_SESSION['admin_id'] = $admin['id'];
         $_SESSION['admin_usuario'] = $admin['usuario'];
         $_SESSION['admin_nombre'] = $admin['nombre'];
+        $_SESSION['admin_cargo'] = $admin['cargo'] ?? 'Dirección General';
         header('Location: index.php');
         exit;
     } else {
-        $error = 'Usuario o contraseña incorrectos. Usa: admin / impulso2026';
+        $error = 'Usuario o contraseña incorrectos. Verifica tus datos de acceso.';
     }
 }
 
@@ -161,15 +164,20 @@ $logoUrl = '../' . ($cfg['logo_url'] ?? 'uploads/img/logo.jpg');
 
             <form method="POST" id="adminLoginForm">
                 <div id="jsLoginError" style="display:none;background:#FEF2F2;border:1px solid #EF4444;color:#991B1B;padding:10px 14px;border-radius:10px;font-size:0.86rem;margin-bottom:16px;">
-                    <i class="fa-solid fa-circle-exclamation"></i> Usuario o contraseña incorrectos. Usa: admin / impulso2026
+                    <i class="fa-solid fa-circle-exclamation"></i> Usuario o contraseña incorrectos. Verifica tus datos.
                 </div>
                 <div class="form-group">
-                    <label><i class="fa-solid fa-user-shield" style="color:#0074F0;"></i> Usuario Administrador</label>
-                    <input type="text" name="usuario" id="loginUsuario" class="form-control" value="admin" required>
+                    <label><i class="fa-solid fa-user-shield" style="color:#0074F0;"></i> Usuario de Acceso</label>
+                    <input type="text" name="usuario" id="loginUsuario" class="form-control" value="admin" placeholder="Ej. admin, alice, eugenia" required>
                 </div>
                 <div class="form-group">
                     <label><i class="fa-solid fa-key" style="color:#0074F0;"></i> Contraseña</label>
-                    <input type="password" name="password" id="loginPassword" class="form-control" value="impulso2026" required>
+                    <div style="position:relative;">
+                        <input type="password" name="password" id="loginPassword" class="form-control" value="impulso2026" style="padding-right:44px;" required>
+                        <button type="button" onclick="const p=document.getElementById('loginPassword'); p.type = p.type==='password' ? 'text' : 'password';" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#85C1FF;cursor:pointer;font-size:1rem;" title="Ver / Ocultar contraseña">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="btn-submit">
                     <i class="fa-solid fa-right-to-bracket"></i> Ingresar al Sistema de Control
@@ -177,8 +185,8 @@ $logoUrl = '../' . ($cfg['logo_url'] ?? 'uploads/img/logo.jpg');
             </form>
 
             <div class="demo-credentials">
-                <strong>Credenciales listas para ingresar:</strong><br>
-                Usuario: <code>admin</code> &nbsp;|&nbsp; Clave: <code>impulso2026</code>
+                <strong><i class="fa-solid fa-users-gear"></i> Usuarios Administrables desde el Panel:</strong><br>
+                Puedes crear nuevos usuarios y cambiar contraseñas en la sección <strong>"Usuarios y Contraseñas"</strong> del Panel.
             </div>
 
             <div style="text-align:center;margin-top:16px;">
@@ -192,9 +200,14 @@ $logoUrl = '../' . ($cfg['logo_url'] ?? 'uploads/img/logo.jpg');
         if (window.location.pathname.endsWith('.html') || window.location.hostname.includes('github.io')) {
             document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                var u = document.getElementById('loginUsuario').value.trim();
+                var u = document.getElementById('loginUsuario').value.trim().toLowerCase();
                 var p = document.getElementById('loginPassword').value.trim();
-                if (u === 'admin' && p === 'impulso2026') {
+                var defaultUsers = { 'admin': 'impulso2026', 'alice': 'alice2026', 'eugenia': 'eugenia2026' };
+                try {
+                    var custom = JSON.parse(localStorage.getItem('ia_admin_users_map') || '{}');
+                    Object.assign(defaultUsers, custom);
+                } catch (err) {}
+                if (defaultUsers[u] && defaultUsers[u] === p) {
                     sessionStorage.setItem('ia_admin_auth', '1');
                     window.location.href = 'index.html';
                 } else {
