@@ -2773,6 +2773,12 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_error']);
     </div>
 
     <script>
+        if (window.location.pathname.endsWith('.html') || window.location.hostname.includes('github.io')) {
+            if (sessionStorage.getItem('ia_admin_auth') !== '1') {
+                window.location.replace('login.html');
+            }
+        }
+
         function toggleVerPasswordFila(id) {
             const span = document.getElementById('pwdSpan_' + id);
             const icon = document.getElementById('pwdIcon_' + id);

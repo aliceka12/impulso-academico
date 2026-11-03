@@ -9,14 +9,14 @@ $cfg = obtenerConfiguracion($pdo);
 $error = '';
 
 if (isset($_GET['logout'])) {
-    unset($_SESSION['admin_logged_in'], $_SESSION['admin_nombre'], $_SESSION['admin_usuario']);
+    unset($_SESSION['admin_logged_in'], $_SESSION['admin_nombre'], $_SESSION['admin_usuario'], $_SESSION['admin_id']);
     header('Location: login.php');
     exit;
 }
 
-if (!empty($_SESSION['admin_logged_in'])) {
-    header('Location: index.php');
-    exit;
+// Al entrar a login.php desde la web pública (GET), siempre cerrar la sesión previa para exigir usuario y contraseña
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    unset($_SESSION['admin_logged_in'], $_SESSION['admin_nombre'], $_SESSION['admin_usuario'], $_SESSION['admin_id']);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -162,18 +162,18 @@ $logoUrl = '../' . ($cfg['logo_url'] ?? 'uploads/img/logo.jpg');
             </div>
             <?php endif; ?>
 
-            <form method="POST" id="adminLoginForm">
+            <form method="POST" id="adminLoginForm" autocomplete="off">
                 <div id="jsLoginError" style="display:none;background:#FEF2F2;border:1px solid #EF4444;color:#991B1B;padding:10px 14px;border-radius:10px;font-size:0.86rem;margin-bottom:16px;">
                     <i class="fa-solid fa-circle-exclamation"></i> Usuario o contraseña incorrectos. Verifica tus datos.
                 </div>
                 <div class="form-group">
                     <label><i class="fa-solid fa-user-shield" style="color:#0074F0;"></i> Usuario de Acceso</label>
-                    <input type="text" name="usuario" id="loginUsuario" class="form-control" value="admin" placeholder="Ej. admin, alice, eugenia" required>
+                    <input type="text" name="usuario" id="loginUsuario" class="form-control" value="" placeholder="Ingresa tu usuario" autocomplete="off" required>
                 </div>
                 <div class="form-group">
                     <label><i class="fa-solid fa-key" style="color:#0074F0;"></i> Contraseña</label>
                     <div style="position:relative;">
-                        <input type="password" name="password" id="loginPassword" class="form-control" value="impulso2026" style="padding-right:44px;" required>
+                        <input type="password" name="password" id="loginPassword" class="form-control" value="" placeholder="Ingresa tu contraseña" autocomplete="new-password" style="padding-right:44px;" required>
                         <button type="button" onclick="const p=document.getElementById('loginPassword'); p.type = p.type==='password' ? 'text' : 'password';" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#85C1FF;cursor:pointer;font-size:1rem;" title="Ver / Ocultar contraseña">
                             <i class="fa-solid fa-eye"></i>
                         </button>
@@ -184,13 +184,8 @@ $logoUrl = '../' . ($cfg['logo_url'] ?? 'uploads/img/logo.jpg');
                 </button>
             </form>
 
-            <div class="demo-credentials">
-                <strong><i class="fa-solid fa-users-gear"></i> Usuarios Administrables desde el Panel:</strong><br>
-                Puedes crear nuevos usuarios y cambiar contraseñas en la sección <strong>"Usuarios y Contraseñas"</strong> del Panel.
-            </div>
-
-            <div style="text-align:center;margin-top:16px;">
-                <a href="../index.php" style="color:#0074F0;text-decoration:none;font-size:0.86rem;font-weight:700;">
+            <div style="text-align:center;margin-top:18px;">
+                <a href="../index.php" style="color:#3898FF;text-decoration:none;font-size:0.86rem;font-weight:700;">
                     <i class="fa-solid fa-arrow-left"></i> Volver a la Página Pública
                 </a>
             </div>
@@ -198,6 +193,7 @@ $logoUrl = '../' . ($cfg['logo_url'] ?? 'uploads/img/logo.jpg');
     </div>
     <script>
         if (window.location.pathname.endsWith('.html') || window.location.hostname.includes('github.io')) {
+            sessionStorage.removeItem('ia_admin_auth');
             document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 var u = document.getElementById('loginUsuario').value.trim().toLowerCase();
