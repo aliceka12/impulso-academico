@@ -44,7 +44,7 @@ $whatsappLink1 = "https://wa.me/{$wsp1}?text=" . rawurlencode("Hola Impulso Acad
 $whatsappLink2 = "https://wa.me/{$wsp2}?text=" . rawurlencode("Hola Impulso Académico, deseo información sobre asesoría de tesis y coordinar un presupuesto personalizado.");
 
 $paginaActual = $paginaActual ?? basename($_SERVER['PHP_SELF']);
-$tituloPagina = $tituloPagina ?? ($cfg['titulo_portada'] ?? 'Asesoría de Tesis Académica en Lima y Perú');
+$tituloPagina = $tituloPagina ?? ($cfg['titulo_portada'] ?? 'Asesoría de Tesis Profesional Online');
 $nombreEmpresa = $cfg['nombre_empresa'] ?? 'Impulso Académico';
 
 // Configuración dinámica de Dominio y URL Canónica para SEO
@@ -57,9 +57,9 @@ $canonicalUrl = $dominioBase . ($pathLimpio ? '/' . $pathLimpio : '/');
 
 $ogImageUrl = (strpos($imgLogo, 'http') === 0) ? $imgLogo : ($dominioBase . '/' . ltrim($imgLogo, '/'));
 
-// Meta tags SEO por defecto si no están definidos en la página específica
-$seoDescripcion = $seoDescripcion ?? 'Asesoría de tesis profesional en Lima y todo el Perú para pregrado y posgrado. Plan de tesis, análisis estadístico SPSS/Stata, corrección de observaciones, normas APA 7 y reducción de similitud Turnitin.';
-$seoKeywords = $seoKeywords ?? 'asesoria de tesis lima, asesoria de tesis peru, elaboracion de tesis, realizacion de tesis, plan de tesis, analisis estadistico spss, turnitin peru, correccion de observaciones tesis, tesis pregrado posgrado maestria, impulso academico lima';
+// Meta tags SEO Globales e Internacionales (Alcance Universal)
+$seoDescripcion = $seoDescripcion ?? 'Asesoría de tesis profesional online a nivel internacional. Elaboración de proyectos de grado, tesis de pregrado, maestría y doctorado, análisis estadístico con SPSS, Stata y R, corrección de observaciones, normas APA 7 y reducción Turnitin.';
+$seoKeywords = $seoKeywords ?? 'asesoria de tesis online, ayuda con la tesis, elaboracion de tesis, realizacion de tesis, tesis de maestria, tesis de doctorado, analisis estadistico spss, correccion normas apa 7, turnitin antiplagio, redaccion de tesis internacional, asesoramiento academico online';
 $fullMetaTitle = htmlspecialchars($tituloPagina) . ' | ' . htmlspecialchars($nombreEmpresa);
 ?>
 <!DOCTYPE html>
@@ -69,7 +69,7 @@ $fullMetaTitle = htmlspecialchars($tituloPagina) . ' | ' . htmlspecialchars($nom
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $fullMetaTitle ?></title>
 
-    <!-- ==================== META TAGS SEO PRINCIPALES ==================== -->
+    <!-- ==================== META TAGS SEO PRINCIPALES (GLOBAL / UNIVERSAL) ==================== -->
     <meta name="description" content="<?= htmlspecialchars($seoDescripcion) ?>">
     <meta name="keywords" content="<?= htmlspecialchars($seoKeywords) ?>">
     <meta name="author" content="<?= htmlspecialchars($nombreEmpresa) ?>">
@@ -78,13 +78,12 @@ $fullMetaTitle = htmlspecialchars($tituloPagina) . ' | ' . htmlspecialchars($nom
     <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <link rel="canonical" href="<?= htmlspecialchars($canonicalUrl) ?>">
 
-    <!-- Geolocalización y SEO Local (Lima - Perú) -->
-    <meta name="geo.region" content="PE-LIM">
-    <meta name="geo.placename" content="Lima, Perú">
-    <meta name="geo.position" content="-12.046374;-77.042793">
-    <meta name="ICBM" content="-12.046374, -77.042793">
+    <!-- Alcance Internacional y Multipaís (Universal) -->
+    <meta name="distribution" content="global">
+    <meta name="coverage" content="Worldwide">
+    <meta name="rating" content="General">
     <meta name="language" content="Spanish">
-    <meta name="revisit-after" content="3 days">
+    <meta name="revisit-after" content="2 days">
 
     <!-- Verificación de Google Search Console (Configurable desde el Panel) -->
     <?php if (!empty($cfg['google_site_verification'])): ?>
@@ -92,7 +91,7 @@ $fullMetaTitle = htmlspecialchars($tituloPagina) . ' | ' . htmlspecialchars($nom
     <?php endif; ?>
 
     <!-- ==================== OPEN GRAPH (FACEBOOK, WHATSAPP, LINKEDIN) ==================== -->
-    <meta property="og:locale" content="es_PE">
+    <meta property="og:locale" content="es_LA">
     <meta property="og:type" content="website">
     <meta property="og:title" content="<?= $fullMetaTitle ?>">
     <meta property="og:description" content="<?= htmlspecialchars($seoDescripcion) ?>">
@@ -102,7 +101,7 @@ $fullMetaTitle = htmlspecialchars($tituloPagina) . ' | ' . htmlspecialchars($nom
     <meta property="og:image:secure_url" content="<?= htmlspecialchars($ogImageUrl) ?>">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Impulso Académico - Asesoría de Tesis y Metodología">
+    <meta property="og:image:alt" content="Impulso Académico - Asesoría de Tesis Online e Investigación">
 
     <!-- ==================== TWITTER CARDS ==================== -->
     <meta name="twitter:card" content="summary_large_image">
@@ -110,7 +109,7 @@ $fullMetaTitle = htmlspecialchars($tituloPagina) . ' | ' . htmlspecialchars($nom
     <meta name="twitter:description" content="<?= htmlspecialchars($seoDescripcion) ?>">
     <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl) ?>">
 
-    <!-- ==================== DATOS ESTRUCTURADOS SCHEMA.ORG (JSON-LD) ==================== -->
+    <!-- ==================== DATOS ESTRUCTURADOS SCHEMA.ORG (JSON-LD UNIVERSAL) ==================== -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -119,29 +118,48 @@ $fullMetaTitle = htmlspecialchars($tituloPagina) . ' | ' . htmlspecialchars($nom
           "@type": ["EducationalOrganization", "ProfessionalService"],
           "@id": "<?= htmlspecialchars($dominioBase) ?>/#organization",
           "name": "Impulso Académico",
-          "alternateName": "Impulso Académico - Sistema de Gestión y Apoyo a la Investigación",
+          "alternateName": "Impulso Académico - Asesoría y Consultoría de Tesis Online",
           "url": "<?= htmlspecialchars($dominioBase) ?>",
           "logo": "<?= htmlspecialchars($ogImageUrl) ?>",
           "image": "<?= htmlspecialchars($ogImageUrl) ?>",
-          "description": "Asesoría académica, metodológica y estadística de tesis de pregrado y posgrado en Lima, Perú. Especialistas en SPSS, Stata, Turnitin y normas APA 7.",
+          "description": "Asesoría académica, metodológica y estadística de tesis online para pregrado, maestría y doctorado a nivel internacional. Especialistas en SPSS, Stata, R, Turnitin y normas APA 7.",
           "telephone": "+51953697434",
           "email": "contacto@impulsoacademicoea.com",
-          "priceRange": "S/ 30 - S/ 3000",
-          "address": {
-            "@type": "PostalAddress",
-            "addressLocality": "Lima",
-            "addressRegion": "Lima",
-            "addressCountry": "PE"
+          "priceRange": "$$",
+          "areaServed": {
+            "@type": "AdministrativeArea",
+            "name": "Worldwide"
           },
-          "geo": {
-            "@type": "GeoCoordinates",
-            "latitude": -12.046374,
-            "longitude": -77.042793
+          "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "Servicios de Asesoría de Tesis Online",
+            "itemListElement": [
+              {
+                "@type": "Offer",
+                "itemOffered": {
+                  "@type": "Service",
+                  "name": "Asesoría Integral de Tesis Online",
+                  "description": "Acompañamiento personalizado desde el plan hasta la sustentación."
+                }
+              },
+              {
+                "@type": "Offer",
+                "itemOffered": {
+                  "@type": "Service",
+                  "name": "Análisis Estadístico SPSS, Stata y R",
+                  "description": "Procesamiento de datos, contrastación de hipótesis y presentación de resultados."
+                }
+              },
+              {
+                "@type": "Offer",
+                "itemOffered": {
+                  "@type": "Service",
+                  "name": "Corrección de Estilo y Normas APA 7",
+                  "description": "Adaptación metodológica y formato bajo estándares internacionales."
+                }
+              }
+            ]
           },
-          "areaServed": [
-            { "@type": "City", "name": "Lima" },
-            { "@type": "Country", "name": "Perú" }
-          ],
           "sameAs": [
             "https://www.facebook.com",
             "https://www.instagram.com",
