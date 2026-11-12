@@ -63,7 +63,7 @@ $promoPreseleccionada = trim($_GET['promo'] ?? '');
                                 </div>
                             </div>
 
-                            <div style="display:flex;align-items:center;gap:14px;">
+                            <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
                                 <div style="width:46px;height:46px;border-radius:12px;background:rgba(0,116,240,0.3);display:flex;align-items:center;justify-content:center;color:#3898FF;font-size:1.3rem;">
                                     <i class="fa-solid fa-share-nodes"></i>
                                 </div>
@@ -71,6 +71,18 @@ $promoPreseleccionada = trim($_GET['promo'] ?? '');
                                     <small style="color:#9EC3F0;display:block;">Síguenos en Redes Sociales</small>
                                     <strong style="color:#fff;">Encuéntranos en Facebook, Instagram y TikTok</strong>
                                 </div>
+                            </div>
+
+                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px;">
+                                <a href="https://www.facebook.com/profile.php?id=61586263905668" target="_blank" rel="noopener noreferrer" class="btn" style="background:rgba(24,119,242,0.22);border:1px solid #3898FF;color:#fff;padding:10px 8px;font-size:0.82rem;justify-content:center;">
+                                    <i class="fa-brands fa-facebook"></i> Facebook
+                                </a>
+                                <a href="https://www.instagram.com/impulso_academico2026/" target="_blank" rel="noopener noreferrer" class="btn" style="background:rgba(225,48,108,0.22);border:1px solid #F472B6;color:#fff;padding:10px 8px;font-size:0.82rem;justify-content:center;">
+                                    <i class="fa-brands fa-instagram"></i> Instagram
+                                </a>
+                                <a href="https://www.tiktok.com/@impulsoacademico00" target="_blank" rel="noopener noreferrer" class="btn" style="background:rgba(15,23,42,0.75);border:1px solid #94A3B8;color:#fff;padding:10px 8px;font-size:0.82rem;justify-content:center;">
+                                    <i class="fa-brands fa-tiktok"></i> TikTok
+                                </a>
                             </div>
                         </div>
                     </div>

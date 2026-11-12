@@ -161,6 +161,10 @@ $fullMetaTitle = htmlspecialchars($tituloPagina) . ' | ' . htmlspecialchars($nom
             ]
           },
           "sameAs": [
+            "https://www.facebook.com/profile.php?id=61586263905668",
+            "https://www.instagram.com/impulso_academico2026/",
+            "https://www.tiktok.com/@impulsoacademico00"
+          ]
             "https://www.facebook.com",
             "https://www.instagram.com",
             "https://www.tiktok.com"
