@@ -547,6 +547,18 @@ try {
             $_SESSION['flash_msg'] = "Datos de RUC ({$ruc}) y Razón Social actualizados para todas las Boletas, Facturas y Cotizaciones.";
             break;
 
+        case 'actualizar_config_seo':
+            $dom = trim($_POST['dominio_oficial'] ?? '');
+            $gCode = trim($_POST['google_site_verification'] ?? '');
+            $stmtUp = $pdo->prepare("
+                INSERT INTO configuracion_web (clave, valor, descripcion) VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE valor = VALUES(valor)
+            ");
+            $stmtUp->execute(['dominio_oficial', $dom, 'Dominio oficial de la web para SEO']);
+            $stmtUp->execute(['google_site_verification', $gCode, 'Código de verificación Google Search Console']);
+            $_SESSION['flash_msg'] = "Configuración SEO, Dominio Oficial y Código de Google actualizados.";
+            break;
+
         case 'crear_comprobante_pago':
             $tipoDoc = in_array($_POST['tipo_doc'] ?? '', ['BOLETA','FACTURA','COTIZACION']) ? $_POST['tipo_doc'] : 'BOLETA';
             $totalDocs = (int)$pdo->query("SELECT COUNT(*) FROM comprobantes_pago WHERE tipo_doc = " . $pdo->quote($tipoDoc))->fetchColumn() + 1;

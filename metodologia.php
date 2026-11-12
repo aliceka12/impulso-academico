@@ -4,7 +4,9 @@
  * Imágenes jaladas directamente de la Base de Datos MySQL.
  */
 $paginaActual = 'metodologia.php';
-$tituloPagina = 'Nuestra Metodología de Trabajo y Modalidad de Atención';
+$tituloPagina = 'Metodología de Trabajo y Modalidad Virtual en Lima y Perú';
+$seoDescripcion = 'Nuestra metodología de asesoría en 5 pasos claros: diagnóstico inicial, plan personalizado, sesiones continuas vía Zoom/Meet, entregables revisados y simulacro de sustentación.';
+$seoKeywords = 'metodologia de tesis, pasos para hacer una tesis, asesoria virtual zoom meet tesis, etapas de investigacion universitaria';
 require_once __DIR__ . '/includes/header.php';
 
 $imgMetodologia = $seccionesImg['metodologia_banner'] ?? [

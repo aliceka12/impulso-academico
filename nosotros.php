@@ -4,7 +4,9 @@
  * Imágenes y textos jalados directamente de la Base de Datos MySQL.
  */
 $paginaActual = 'nosotros.php';
-$tituloPagina = '¿Quiénes Somos? • Misión, Visión y Valores';
+$tituloPagina = '¿Quiénes Somos? • Expertos en Asesoría Metodológica de Tesis';
+$seoDescripcion = 'Conoce a Impulso Académico: equipo multidisciplinario de asesores metodológicos y estadísticos con ética, excelencia y rigor académico para graduandos en Lima y Perú.';
+$seoKeywords = 'asesores de tesis expertos, impulso academico nosotros, equipo metodologico tesis, asesoria etica universitaria lima';
 require_once __DIR__ . '/includes/header.php';
 
 $imgQuienes = $seccionesImg['quienes_somos'] ?? [

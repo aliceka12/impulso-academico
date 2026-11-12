@@ -4,7 +4,9 @@
  * Tabla oficial de inversión referencial desde la Base de Datos (Sin pasarela de pagos).
  */
 $paginaActual = 'tarifas.php';
-$tituloPagina = 'Tarifas de Nuestros Servicios';
+$tituloPagina = 'Tarifas y Costos de Asesoría de Tesis 2026 en Perú';
+$seoDescripcion = 'Tarifas y precios referenciales de asesoría de tesis en Perú: asesoría por horas, elaboración completa, análisis estadístico SPSS, diapositivas y reducción Turnitin.';
+$seoKeywords = 'costo asesoria de tesis peru, cuanto cuesta una tesis en lima, precios tesis 2026, tarifa analisis estadistico spss, precio turnitin informe';
 require_once __DIR__ . '/includes/header.php';
 
 $tarifasActivas = $pdo->query("SELECT * FROM tarifas_servicios WHERE estado = 'ACTIVO' ORDER BY orden ASC, id ASC")->fetchAll();

@@ -561,11 +561,13 @@ function obtenerConfiguracion(PDO $pdo): array {
  * - Empleados: Asistencia Investigación / Comercial y Cálculo de Horas e Importe Mensual
  */
 function inicializarModulosExcelYFacturacion(PDO $pdo): void {
-    // Asegurar claves de RUC y facturación en configuracion_web
+    // Asegurar claves de RUC, facturación y SEO en configuracion_web
     $stmtCfg = $pdo->prepare("INSERT IGNORE INTO configuracion_web (clave, valor, descripcion) VALUES (?, ?, ?)");
     $stmtCfg->execute(['ruc_empresa', 'EN TRÁMITE (Editable al obtener RUC)', 'Número de RUC para Boletas, Facturas y Cotizaciones']);
     $stmtCfg->execute(['razon_social_facturacion', 'IMPULSO ACADÉMICO - SISTEMA DE GESTIÓN Y APOYO A LA INVESTIGACIÓN', 'Razón social para comprobantes']);
     $stmtCfg->execute(['direccion_fiscal', 'Lima – Perú', 'Dirección fiscal en comprobantes']);
+    $stmtCfg->execute(['dominio_oficial', '', 'Dominio oficial de la web (Ej: https://tu-dominio.com) para SEO, Canonical y Sitemap']);
+    $stmtCfg->execute(['google_site_verification', '', 'Código de verificación de Google Search Console para aparecer en Google']);
 
     // Asegurar columnas de administración de usuarios y contraseñas en usuarios_admin
     $colCheck = $pdo->query("SHOW COLUMNS FROM usuarios_admin LIKE 'password_visible'");

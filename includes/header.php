@@ -44,14 +44,131 @@ $whatsappLink1 = "https://wa.me/{$wsp1}?text=" . rawurlencode("Hola Impulso Acad
 $whatsappLink2 = "https://wa.me/{$wsp2}?text=" . rawurlencode("Hola Impulso Académico, deseo información sobre asesoría de tesis y coordinar un presupuesto personalizado.");
 
 $paginaActual = $paginaActual ?? basename($_SERVER['PHP_SELF']);
-$tituloPagina = $tituloPagina ?? ($cfg['titulo_portada'] ?? 'Asesoría de Tesis Académica');
+$tituloPagina = $tituloPagina ?? ($cfg['titulo_portada'] ?? 'Asesoría de Tesis Académica en Lima y Perú');
+$nombreEmpresa = $cfg['nombre_empresa'] ?? 'Impulso Académico';
+
+// Configuración dinámica de Dominio y URL Canónica para SEO
+$protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' || isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ? 'https://' : 'http://';
+$hostActual = $_SERVER['HTTP_HOST'] ?? 'impulsoacademico.pe';
+$dominioBase = !empty($cfg['dominio_oficial']) ? rtrim($cfg['dominio_oficial'], '/') : rtrim($protocolo . $hostActual, '/');
+
+$pathLimpio = ($paginaActual === 'index.php') ? '' : $paginaActual;
+$canonicalUrl = $dominioBase . ($pathLimpio ? '/' . $pathLimpio : '/');
+
+$ogImageUrl = (strpos($imgLogo, 'http') === 0) ? $imgLogo : ($dominioBase . '/' . ltrim($imgLogo, '/'));
+
+// Meta tags SEO por defecto si no están definidos en la página específica
+$seoDescripcion = $seoDescripcion ?? 'Asesoría de tesis profesional en Lima y todo el Perú para pregrado y posgrado. Plan de tesis, análisis estadístico SPSS/Stata, corrección de observaciones, normas APA 7 y reducción de similitud Turnitin.';
+$seoKeywords = $seoKeywords ?? 'asesoria de tesis lima, asesoria de tesis peru, elaboracion de tesis, realizacion de tesis, plan de tesis, analisis estadistico spss, turnitin peru, correccion de observaciones tesis, tesis pregrado posgrado maestria, impulso academico lima';
+$fullMetaTitle = htmlspecialchars($tituloPagina) . ' | ' . htmlspecialchars($nombreEmpresa);
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($tituloPagina) ?> | <?= htmlspecialchars($cfg['nombre_empresa'] ?? 'Impulso Académico') ?></title>
+    <title><?= $fullMetaTitle ?></title>
+
+    <!-- ==================== META TAGS SEO PRINCIPALES ==================== -->
+    <meta name="description" content="<?= htmlspecialchars($seoDescripcion) ?>">
+    <meta name="keywords" content="<?= htmlspecialchars($seoKeywords) ?>">
+    <meta name="author" content="<?= htmlspecialchars($nombreEmpresa) ?>">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <link rel="canonical" href="<?= htmlspecialchars($canonicalUrl) ?>">
+
+    <!-- Geolocalización y SEO Local (Lima - Perú) -->
+    <meta name="geo.region" content="PE-LIM">
+    <meta name="geo.placename" content="Lima, Perú">
+    <meta name="geo.position" content="-12.046374;-77.042793">
+    <meta name="ICBM" content="-12.046374, -77.042793">
+    <meta name="language" content="Spanish">
+    <meta name="revisit-after" content="3 days">
+
+    <!-- Verificación de Google Search Console (Configurable desde el Panel) -->
+    <?php if (!empty($cfg['google_site_verification'])): ?>
+    <meta name="google-site-verification" content="<?= htmlspecialchars($cfg['google_site_verification']) ?>">
+    <?php endif; ?>
+
+    <!-- ==================== OPEN GRAPH (FACEBOOK, WHATSAPP, LINKEDIN) ==================== -->
+    <meta property="og:locale" content="es_PE">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="<?= $fullMetaTitle ?>">
+    <meta property="og:description" content="<?= htmlspecialchars($seoDescripcion) ?>">
+    <meta property="og:url" content="<?= htmlspecialchars($canonicalUrl) ?>">
+    <meta property="og:site_name" content="<?= htmlspecialchars($nombreEmpresa) ?>">
+    <meta property="og:image" content="<?= htmlspecialchars($ogImageUrl) ?>">
+    <meta property="og:image:secure_url" content="<?= htmlspecialchars($ogImageUrl) ?>">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Impulso Académico - Asesoría de Tesis y Metodología">
+
+    <!-- ==================== TWITTER CARDS ==================== -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?= $fullMetaTitle ?>">
+    <meta name="twitter:description" content="<?= htmlspecialchars($seoDescripcion) ?>">
+    <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl) ?>">
+
+    <!-- ==================== DATOS ESTRUCTURADOS SCHEMA.ORG (JSON-LD) ==================== -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": ["EducationalOrganization", "ProfessionalService"],
+          "@id": "<?= htmlspecialchars($dominioBase) ?>/#organization",
+          "name": "Impulso Académico",
+          "alternateName": "Impulso Académico - Sistema de Gestión y Apoyo a la Investigación",
+          "url": "<?= htmlspecialchars($dominioBase) ?>",
+          "logo": "<?= htmlspecialchars($ogImageUrl) ?>",
+          "image": "<?= htmlspecialchars($ogImageUrl) ?>",
+          "description": "Asesoría académica, metodológica y estadística de tesis de pregrado y posgrado en Lima, Perú. Especialistas en SPSS, Stata, Turnitin y normas APA 7.",
+          "telephone": "+51953697434",
+          "email": "contacto@impulsoacademico.pe",
+          "priceRange": "S/ 30 - S/ 3000",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Lima",
+            "addressRegion": "Lima",
+            "addressCountry": "PE"
+          },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": -12.046374,
+            "longitude": -77.042793
+          },
+          "areaServed": [
+            { "@type": "City", "name": "Lima" },
+            { "@type": "Country", "name": "Perú" }
+          ],
+          "sameAs": [
+            "https://www.facebook.com",
+            "https://www.instagram.com",
+            "https://www.tiktok.com"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "<?= htmlspecialchars($dominioBase) ?>/#website",
+          "url": "<?= htmlspecialchars($dominioBase) ?>",
+          "name": "Impulso Académico",
+          "publisher": { "@id": "<?= htmlspecialchars($dominioBase) ?>/#organization" },
+          "inLanguage": "es-PE"
+        },
+        {
+          "@type": "WebPage",
+          "@id": "<?= htmlspecialchars($canonicalUrl) ?>#webpage",
+          "url": "<?= htmlspecialchars($canonicalUrl) ?>",
+          "name": "<?= $fullMetaTitle ?>",
+          "description": "<?= htmlspecialchars($seoDescripcion) ?>",
+          "isPartOf": { "@id": "<?= htmlspecialchars($dominioBase) ?>/#website" },
+          "inLanguage": "es-PE"
+        }
+      ]
+    }
+    </script>
+
     <link rel="icon" type="image/jpeg" href="<?= htmlspecialchars($imgLogo) ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

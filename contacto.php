@@ -4,7 +4,9 @@
  * Sin pasarela de pagos: coordinación directa por interno con nuestros asesores.
  */
 $paginaActual = 'contacto.php';
-$tituloPagina = '¡Contáctanos! • Presupuesto Personalizado';
+$tituloPagina = 'Cotizar Asesoría de Tesis por WhatsApp • Presupuesto Inmediato';
+$seoDescripcion = 'Cotiza la asesoría de tu tesis universitaria en Lima y Perú. Atención inmediata y asesoría personalizada por WhatsApp al 953 697 434 o 900 439 160. Facilidades de pago por cuotas.';
+$seoKeywords = 'cotizar tesis por whatsapp, numero asesores de tesis lima, presupuesto tesis universitaria, ayuda con tesis pucp unmsm ucv utp';
 require_once __DIR__ . '/includes/header.php';
 
 $serviciosActivos = $pdo->query("SELECT * FROM servicios WHERE estado = 'ACTIVO' ORDER BY orden ASC, id ASC")->fetchAll();

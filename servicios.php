@@ -4,7 +4,9 @@
  * Todas las imágenes y los 8 servicios oficiales se jalan de la Base de Datos MySQL.
  */
 $paginaActual = 'servicios.php';
-$tituloPagina = 'Servicios que Ofrecemos y Áreas de Especialización';
+$tituloPagina = 'Servicios de Tesis, SPSS y Turnitin en Lima';
+$seoDescripcion = 'Servicios especializados de tesis: delimitación del tema, formulación del problema, marco teórico, metodología, análisis estadístico SPSS/Stata y reducción Turnitin en Lima y Perú.';
+$seoKeywords = 'servicios tesis lima peru, analisis estadistico spss tesis, reduccion turnitin informe, correcion de observaciones jurado, normas apa 7 edicion, diapositivas sustentacion';
 require_once __DIR__ . '/includes/header.php';
 
 $serviciosActivos = $pdo->query("SELECT * FROM servicios WHERE estado = 'ACTIVO' ORDER BY orden ASC, id ASC")->fetchAll();

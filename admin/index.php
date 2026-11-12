@@ -730,6 +730,51 @@ unset($_SESSION['flash_msg'], $_SESSION['flash_error']);
                         </div>
                     </div>
                 </div>
+                <!-- ==================== CONFIGURACIÓN SEO, DOMINIO Y GOOGLE SEARCH CONSOLE ==================== -->
+                <div class="panel-card" style="border-color:#3898FF;">
+                    <div class="panel-header" style="background:rgba(0,116,240,0.18);">
+                        <h3><i class="fa-brands fa-google" style="color:#FBBF24;"></i> Posicionamiento en Google (SEO, Meta Tags y Dominio Web)</h3>
+                        <span class="status-pill pill-blue"><i class="fa-solid fa-bolt"></i> Indexación en Buscadores</span>
+                    </div>
+                    <div class="panel-body">
+                        <form action="acciones.php" method="POST">
+                            <input type="hidden" name="accion" value="actualizar_config_seo">
+                            <input type="hidden" name="tab_retorno" value="dashboard">
+                            <div class="form-grid-3">
+                                <div class="form-group" style="grid-column: span 2;">
+                                    <label><i class="fa-solid fa-globe" style="color:#3898FF;"></i> Dominio Oficial de la Web (Con https://)</label>
+                                    <input type="url" name="dominio_oficial" class="form-control"
+                                           value="<?= htmlspecialchars($cfg['dominio_oficial'] ?? '') ?>"
+                                           placeholder="Ej: https://impulsoacademico.pe">
+                                    <small style="color:#9EC3F0;font-size:0.75rem;">Si lo dejas vacío, el sistema detecta automáticamente el dominio del hosting.</small>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fa-solid fa-key" style="color:#FBBF24;"></i> Código de Google Search Console</label>
+                                    <input type="text" name="google_site_verification" class="form-control"
+                                           value="<?= htmlspecialchars($cfg['google_site_verification'] ?? '') ?>"
+                                           placeholder="Ej: ABcDeF12345_XYZ">
+                                    <small style="color:#9EC3F0;font-size:0.75rem;">Pega aquí el código del meta tag que te entrega Google Search Console.</small>
+                                </div>
+                            </div>
+                            <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                                    <a href="../sitemap.xml" target="_blank" class="btn btn-navy btn-sm">
+                                        <i class="fa-solid fa-sitemap"></i> Ver Sitemap.xml
+                                    </a>
+                                    <a href="../robots.txt" target="_blank" class="btn btn-navy btn-sm">
+                                        <i class="fa-solid fa-robot"></i> Ver Robots.txt
+                                    </a>
+                                    <a href="https://search.google.com/search-console" target="_blank" class="btn btn-sm" style="background:#4285F4;color:#fff;">
+                                        <i class="fa-brands fa-google"></i> Abrir Google Search Console
+                                    </a>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa-solid fa-floppy-disk"></i> Guardar Configuración SEO
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </section>
 
             <!-- =================================================================

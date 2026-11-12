@@ -34,6 +34,7 @@ jobs:
           mkdir -p _site/admin
           cp -r assets _site/
           if [ -d uploads ]; then cp -r uploads _site/; fi
+          cp robots.txt sitemap.xml _site/ 2>/dev/null || true
 
           # 1. Páginas públicas
           for page in index nosotros servicios metodologia tarifas contacto; do

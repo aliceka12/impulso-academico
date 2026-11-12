@@ -5,7 +5,9 @@
  * Los videos, imágenes y campañas (cuando se activan desde el panel) se jalan de MySQL.
  */
 $paginaActual = 'index.php';
-$tituloPagina = 'Inicio • Asesoría de Tesis Académica';
+$tituloPagina = 'Asesoría de Tesis en Lima Perú | Pregrado y Posgrado';
+$seoDescripcion = 'Asesoría de tesis profesional en Lima y todo el Perú. Acompañamiento integral para pregrado, maestría y doctorado: plan de tesis, análisis estadístico SPSS/Stata, normas APA 7 y reducción de similitud Turnitin.';
+$seoKeywords = 'asesoria de tesis lima, asesoria de tesis peru, elaboracion de tesis peru, plan de tesis, analisis estadistico spss lima, reduccion turnitin peru, correccion de tesis, tesis maestria posgrado';
 require_once __DIR__ . '/includes/header.php';
 
 $imgHero = $seccionesImg['hero_principal'] ?? [

@@ -1,0 +1,19 @@
+# Robots.txt - Impulso Académico (Lima - 2026)
+# Permite el rastreo completo de la página web pública en Google y otros buscadores
+
+User-agent: *
+Allow: /
+Allow: /assets/
+Allow: /uploads/
+
+# Bloquear directorios internos y administrativos para proteger la seguridad y evitar contenido duplicado
+Disallow: /admin/
+Disallow: /config/
+Disallow: /api/
+Disallow: /.devcontainer/
+Disallow: /.github/
+Disallow: /.git/
+
+# Ubicación del mapa del sitio XML para indexación rápida en Google
+Sitemap: sitemap.xml
+Sitemap: sitemap.php
