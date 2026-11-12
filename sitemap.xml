@@ -1,39 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-        <loc>https://impulsoacademico.pe/</loc>
+        <loc>https://impulsoacademicoea.com/</loc>
         <lastmod>2026-11-12</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
     </url>
     <url>
-        <loc>https://impulsoacademico.pe/servicios.php</loc>
+        <loc>https://impulsoacademicoea.com/servicios</loc>
         <lastmod>2026-11-12</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
     </url>
     <url>
-        <loc>https://impulsoacademico.pe/tarifas.php</loc>
+        <loc>https://impulsoacademicoea.com/tarifas</loc>
         <lastmod>2026-11-12</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.85</priority>
     </url>
     <url>
-        <loc>https://impulsoacademico.pe/contacto.php</loc>
+        <loc>https://impulsoacademicoea.com/contacto</loc>
         <lastmod>2026-11-12</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.85</priority>
     </url>
     <url>
-        <loc>https://impulsoacademico.pe/nosotros.php</loc>
+        <loc>https://impulsoacademicoea.com/nosotros</loc>
         <lastmod>2026-11-12</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://impulsoacademico.pe/metodologia.php</loc>
+        <loc>https://impulsoacademicoea.com/metodologia</loc>
         <lastmod>2026-11-12</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://impulsoacademicoea.com/terminos</loc>
+        <lastmod>2026-11-12</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
     </url>
 </urlset>
