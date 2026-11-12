@@ -49,7 +49,7 @@ $nombreEmpresa = $cfg['nombre_empresa'] ?? 'Impulso Académico';
 
 // Configuración dinámica de Dominio y URL Canónica para SEO
 $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' || isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ? 'https://' : 'http://';
-$hostActual = $_SERVER['HTTP_HOST'] ?? 'impulsoacademico.pe';
+$hostActual = $_SERVER['HTTP_HOST'] ?? 'impulsoacademicoea.com';
 $dominioBase = !empty($cfg['dominio_oficial']) ? rtrim($cfg['dominio_oficial'], '/') : rtrim($protocolo . $hostActual, '/');
 
 $pathLimpio = ($paginaActual === 'index.php') ? '' : $paginaActual;
@@ -125,7 +125,7 @@ $fullMetaTitle = htmlspecialchars($tituloPagina) . ' | ' . htmlspecialchars($nom
           "image": "<?= htmlspecialchars($ogImageUrl) ?>",
           "description": "Asesoría académica, metodológica y estadística de tesis de pregrado y posgrado en Lima, Perú. Especialistas en SPSS, Stata, Turnitin y normas APA 7.",
           "telephone": "+51953697434",
-          "email": "contacto@impulsoacademico.pe",
+          "email": "contacto@impulsoacademicoea.com",
           "priceRange": "S/ 30 - S/ 3000",
           "address": {
             "@type": "PostalAddress",
