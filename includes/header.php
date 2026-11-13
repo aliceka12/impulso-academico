@@ -165,10 +165,6 @@ $fullMetaTitle = htmlspecialchars($tituloPagina) . ' | ' . htmlspecialchars($nom
             "https://www.instagram.com/impulso_academico2026/",
             "https://www.tiktok.com/@impulsoacademico00"
           ]
-            "https://www.facebook.com",
-            "https://www.instagram.com",
-            "https://www.tiktok.com"
-          ]
         },
         {
           "@type": "WebSite",
@@ -176,7 +172,7 @@ $fullMetaTitle = htmlspecialchars($tituloPagina) . ' | ' . htmlspecialchars($nom
           "url": "<?= htmlspecialchars($dominioBase) ?>",
           "name": "Impulso Académico",
           "publisher": { "@id": "<?= htmlspecialchars($dominioBase) ?>/#organization" },
-          "inLanguage": "es-PE"
+          "inLanguage": "es"
         },
         {
           "@type": "WebPage",
@@ -185,7 +181,7 @@ $fullMetaTitle = htmlspecialchars($tituloPagina) . ' | ' . htmlspecialchars($nom
           "name": "<?= $fullMetaTitle ?>",
           "description": "<?= htmlspecialchars($seoDescripcion) ?>",
           "isPartOf": { "@id": "<?= htmlspecialchars($dominioBase) ?>/#website" },
-          "inLanguage": "es-PE"
+          "inLanguage": "es"
         }
       ]
     }
