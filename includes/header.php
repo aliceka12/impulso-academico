@@ -52,7 +52,8 @@ $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' || isset($_
 $hostActual = $_SERVER['HTTP_HOST'] ?? 'impulsoacademicoea.com';
 $dominioBase = !empty($cfg['dominio_oficial']) ? rtrim($cfg['dominio_oficial'], '/') : rtrim($protocolo . $hostActual, '/');
 
-$pathLimpio = ($paginaActual === 'index.php') ? '' : $paginaActual;
+$nombreSinPhp = preg_replace('/\.php$/i', '', $paginaActual);
+$pathLimpio = ($nombreSinPhp === 'index' || empty($nombreSinPhp)) ? '' : $nombreSinPhp;
 $canonicalUrl = $dominioBase . ($pathLimpio ? '/' . $pathLimpio : '/');
 
 $ogImageUrl = (strpos($imgLogo, 'http') === 0) ? $imgLogo : ($dominioBase . '/' . ltrim($imgLogo, '/'));
